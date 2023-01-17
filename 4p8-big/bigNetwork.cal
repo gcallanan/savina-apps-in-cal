@@ -1,0 +1,23 @@
+namespace big:
+
+    network BigNetwork() ==> int(size=32) Done:
+    entities
+        messengers = [Messenger(N=numMessengers, P=numPingPongs, index=i): for i in 0..numMessengers-1];
+        sink = Sink(N=numMessengers, P=numPingPongs);
+    structure
+        foreach uint i in 0..numMessengers-1 do
+            foreach uint j in 0..numMessengers-2 do
+                if i <= j then
+                    messengers[i].Out[j] --> messengers[j+1].In[i];
+                    messengers[j+1].Out[i] --> messengers[i].In[j];
+                end 
+            end
+        end
+
+        foreach uint i in 0..numMessengers-1 do // -2 as for N actors, we transmit to N-1 actors and then we range from 0 to N-1-1
+            messengers[i].OutToSink --> sink.In[i];
+        end
+        sink.Done --> Done;
+    end
+
+end

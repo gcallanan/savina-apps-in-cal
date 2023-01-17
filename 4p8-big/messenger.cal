@@ -1,0 +1,83 @@
+namespace big:
+
+    // N - number of messenger actors in network
+    // P - number of pings to send
+    // index - this actors specific index
+    actor Messenger (uint N, uint P, uint index) int(size=8) In[N-1] ==> int(size=8) Out[N-1], int(size=32) OutToSink:
+        
+        // Track progress
+        uint numPingsComplete := 0;
+        
+        // Next destination to send ping to
+        uint nextDestination := 0;
+        
+        // Flag to indicate we are done
+        uint doneFlag := 0;
+        
+        // Guards managing the state 
+        int pingReceived := -1;
+        int pingInFlight := 0;
+        
+
+        done: action ==> OutToSink:[index]
+        guard
+            numPingsComplete = P
+        do
+            //println("Actor " + index + " done! Sending message to sink actor");
+            doneFlag := 1;
+            numPingsComplete := numPingsComplete + 1; // Makes the guard disabled
+        end
+
+        for uint i in 0..N-2 generate
+            
+            pingTx: action ==> Out[i]:[0]
+            guard
+                nextDestination = i && doneFlag = 0 && pingInFlight = 0 && numPingsComplete != P
+            do
+                //println("Actor: " + index + " sent " + (numPingsComplete+1) + " of " + P + " pings to destination port: " + nextDestination);
+                pingInFlight := 1;
+            end
+            
+
+            messageRx: action In[i]:[pingOrPong] ==> // 0 for ping, 1 for pong
+            guard
+                pingReceived = -1
+            do
+                if pingOrPong = 0 then
+                    pingReceived := i;
+                    //println("Actor: " + index + " received ping on port " + i + "!");
+                else
+                    pingInFlight := 0;
+                    numPingsComplete := numPingsComplete + 1;
+                    nextDestination := (nextDestination + 1) % (N - 1);
+                    //println("Actor: " + index + " received pong " + numPingsComplete + " of " + P + " on port " + i + "! " + nextDestination);
+                end
+            end
+
+            
+            pongTx: action ==> Out[i]:[1]
+            guard
+                pingReceived = i
+            do
+                pingReceived := -1;
+                //println("Actor: " + index + " sent pong to destination port " + i);
+            end
+        end
+    end
+
+
+
+    // Code for debugging purposes
+
+    network MessengerWrapper() int(size=8) In[numMessengers-1] ==> int(size=8) Out[numMessengers-1], int(size=32) OutToSink:
+    entities
+        messenger = Messenger(N=numMessengers, P=numPingPongs, index=0);
+    structure
+        foreach uint i in 0..numMessengers-2 do // -2 as for N actors, we transmit to N-1 actors and then we range from 0 to N-1-1
+            In[i] --> messenger.In[i];
+            messenger.Out[i] --> Out[i];
+        end
+        messenger.OutToSink --> OutToSink;
+    end
+
+end
