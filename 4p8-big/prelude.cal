@@ -2,4 +2,4 @@
 // some reason. Will fix later (maybe).
 
 external procedure println() end
-external function randInt(int n) --> int end
+external function randint(int n) --> int end

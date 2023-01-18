@@ -1,20 +1,28 @@
 namespace big:
-
+    // Entity that creates the network of messengers to implement the big benchmark.
+    //
+    // The N messenger actors and single sink actor are created and connected to each other.
+    //
+    // numMessengers and numPingPongs defined in config.cal
+    //
+    // Ports:
+    //     Done - The output from the sink actor. Outputs a single token once all messengers have finished transmitting
+    //            The value of the token should be equal to N.
     network BigNetwork() ==> int(size=32) Done:
     entities
         messengers = [Messenger(N=numMessengers, P=numPingPongs, index=i): for i in 0..numMessengers-1];
         sink = Sink(N=numMessengers, P=numPingPongs);
     structure
+        // Link messenger actor ports to each other
         foreach uint i in 0..numMessengers-1 do
-            foreach uint j in 0..numMessengers-2 do
-                if i <= j then
-                    messengers[i].Out[j] --> messengers[j+1].In[i];
-                    messengers[j+1].Out[i] --> messengers[i].In[j];
-                end 
+            foreach uint j in i..numMessengers-2 do // -2 as the each actor has N-1 Out/In ports.
+                messengers[i].Out[j] --> messengers[j+1].In[i];
+                messengers[j+1].Out[i] --> messengers[i].In[j];
             end
         end
 
-        foreach uint i in 0..numMessengers-1 do // -2 as for N actors, we transmit to N-1 actors and then we range from 0 to N-1-1
+        // Link the OutToSink port on each messenger actor to the sink actor.
+        foreach uint i in 0..numMessengers-1 do
             messengers[i].OutToSink --> sink.In[i];
         end
         sink.Done --> Done;
