@@ -5,7 +5,7 @@ namespace big:
     actor Sink (uint N, uint P) int(size=8) In[N] ==> int(size=32) Done:
         uint completedPingsCount := 0;
 
-        donePings: action ==> Done:[completedPingsCount]
+        donePings: action ==> Done:[completedPingsCount-1]
         guard
             completedPingsCount = N
         do
@@ -14,11 +14,10 @@ namespace big:
         end
 
         for uint i in 0..N-1 generate
-            // 0 for pings done, 1 for pongs done
-            pingComplete: action In[i]:[doneCode] ==>
+            pingComplete: action In[i]:[throwawayToken] ==>
             do
+                //println("Sink actor recieved done message from actor " + i);
                 completedPingsCount := completedPingsCount + 1;
-                println("Sink actor recieved done message from actor " + i);
             end
         end
 
@@ -26,7 +25,8 @@ namespace big:
 
 
 
-    // Code for debugging purposes
+    // Network that wraps the Sink actor with fixed parameters for when testing the Messenger actor in a standalone
+    // manner.
     network SinkWrapper() int(size=8) In[numMessengers] ==> int(size=32) Done:
     entities
         sink = Sink(N=numMessengers, P=numPingPongs);

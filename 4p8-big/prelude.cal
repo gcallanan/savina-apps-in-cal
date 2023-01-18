@@ -1,0 +1,5 @@
+// Declare external functions/procedures defined in Tÿcho - Tÿcho should include these automatically but does not for
+// some reason. Will fix later (maybe).
+
+external procedure println() end
+external function randInt(int n) --> int end
