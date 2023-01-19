@@ -2,3 +2,6 @@ target/*
 testOut
 add
 calBinary
+runtimes.csv
+compileTimesCoarse.csv
+compileTimesFine.csv
