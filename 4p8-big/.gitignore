@@ -5,3 +5,4 @@ calBinary
 runtimes.csv
 compileTimesCoarse.csv
 compileTimesFine.csv
+amStatistics.csv

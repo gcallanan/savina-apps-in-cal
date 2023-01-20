@@ -1,8 +1,8 @@
 """
 @author: Gareth Callanan
 
-Script that compiles the big benchmark for different values of N and reports the time taken for each
-compilation phase in Tycho to run. Allows for fine grained examination of the Tycho compiler.
+Script that compiles the big benchmark for different values of N and reports information about
+the AM generated from Tycho.
 """
 
 import os
@@ -41,7 +41,7 @@ for N_index in range(len(N_values)):
     start = time.time()
     proc = subprocess.Popen(
         [
-            "tychoc --set experimental-network-elaboration=on --set phase-timer=on --source-path . --target-path target big.BigNetwork",
+            "tychoc --set experimental-network-elaboration=on --set print-am-statistics=on --source-path . --target-path target big.BigNetwork",
             ".",
         ],
         stdout=subprocess.PIPE,
@@ -72,44 +72,25 @@ f.write(configFileContents)
 f.close()
 
 # 4. Extract the timing information from the outputs and store in a 2D list
-phaseTitles = ["Title\\N", "Total Runtime (ms)"]
+titles = ["N"]
 csvOutput = []
 
 first = True
 for N, output in zip(N_values, outputs):
-    totalRuntimeTime_ms = 0
-    timingResults = [N, 0]
 
-    for line in iter(output.splitlines()):
-        # Skip the first line as it contains information that we do not need.
-        line = line.decode("ASCII")
-        if line == "Execution time report:":
-            continue
-
-        # line formated as: '<phasename> (<time> ms)' need to unpack this
-        openParenthIndex = line.rindex("(")
-        endDigitIndex = line.rindex(" ms)")
-
-        # If this is the first test, we also need to extract phase titles
-        if first:
-            phaseTitle = line[: openParenthIndex - 1]
-            phaseTitles.append(phaseTitle)
-
-        runtime_ms = int(line[openParenthIndex + 1 : endDigitIndex])
-        totalRuntimeTime_ms += runtime_ms
-        timingResults.append(runtime_ms)
+    lines = output.decode("ASCII").split("\n")
 
     if first:
         first = False
-        csvOutput.append(phaseTitles)
+        titles = titles + lines[0].split(",")
+        csvOutput.append(titles)
 
-    timingResults[1] = totalRuntimeTime_ms
-    csvOutput.append(timingResults)
-
-# Switch rows and columns as this is easier to read
-csvOutput = list(map(list, zip(*csvOutput)))
+    for line in lines[1:]:
+        if line == "":
+            continue
+        csvOutput.append([N] + line.split(","))
 
 # 5. Write results to a CSV file.
-with open("compileTimesFine.csv", "w", newline="") as f:
+with open("amStatistics.csv", "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerows(csvOutput)
