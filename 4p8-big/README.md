@@ -4,6 +4,8 @@ Big is a benchmark consisting of N messenger actors. Each messenger actor has a 
 
 The benchmark is configured by adjusting N and P.
 
+A Savina implementation of this benchmark can be found in the [BigHabaneroActorBenchmark.scala](https://github.com/shamsimam/savina/blob/master/src/main/scala/edu/rice/habanero/benchmarks/big/BigHabaneroActorBenchmark.scala)
+
 # Requirements
 1. [streamblocks-tycho](https://git.cs.lth.se/dataflow/streamblocks-tycho) on the LU gitlab servers has been installed and you are using branch "EntityRenamingBug" branch. We use the the tychoc binary in the streamblocks-tycho repo, not the streamblocks binary in the [streamblocks-platforms](https://git.cs.lth.se/dataflow/streamblocks-tycho/-/tree/EntityRenamingBug) repo to build.
 

@@ -22,7 +22,7 @@ namespace big:
         guard
             completedPingsCount = N
         do
-            //println("All actors complete");
+            // println("All actors complete");
             completedPingsCount := completedPingsCount + 1; // End guard
         end
 

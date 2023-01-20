@@ -25,11 +25,6 @@ namespace big:
         // Next destination to transmit a ping to.
         int nextDestination := randInt(N - 1);
                 
-        // Guards managing when we read the next received token. If we receive a ping, we must respond with a pong
-        // before reading the next received. When equal to -1 this guard indicates that there are no pings to respond
-        // to. Otherwise pingReceived equals to the port index that the ping was received on.
-        int pingReceived := -1;
-
         // Indicates that a ping has been sent and a new ping must not be sent until the corresponding pong has been
         // received.
         int pingInFlight := 0; 
@@ -54,48 +49,39 @@ namespace big:
             // and will not be triggered while waiting for a response from the previous ping (pingInFlight guard).
             //
             // If numPingsComplete = P, then we are done transmitting and this action will never trigger.
-            //
-            // If a ping has been received, this action will not execute until a pongResponse action triggers, giving
-            // priority to pongs over pings (pingReceived guard).
             transmitPing: action ==> Out[i]:[0]
             guard
-                nextDestination = i && pingInFlight = 0 && numPingsComplete < P && pingReceived = -1
+                nextDestination = i && pingInFlight = 0 && numPingsComplete < P
             do
                 //println("Actor: " + index + " sent " + (numPingsComplete+1) + " of " + P + " pings to destination port: " + nextDestination);
                 pingInFlight := 1;
             end
             
-            // Action taken when a token is recieved.
+            // Action taken when a ping is received. Responds with a pong on the corresponding output port.
             //
-            // This action receives either a 0 or a 1 value (stored in pingOrPong). A 0 indicates that a ping has been
-            // received and a 1 indicates that a pong has been received. 
-            //
-            // If a ping is received, then this action cannot trigger again until this actor executes the corresponding
-            // pongResponse action (pingReceived flag)
-            receiveToken: action In[i]:[pingOrPong] ==>
+            // This value of pingOrPong is either a 0 or a 1 value. A 0 indicates that a ping
+            // has been received and a 1 indicates that a pong has been received. 
+            receivedPing: action In[i]:[pingOrPong] ==> Out[i]:[1]
             guard
-                pingReceived = -1 //&& pingOrPong = 0
+                pingOrPong = 0
             do
-                if pingOrPong = 0 then
-                    pingReceived := i;
-                    //println("Actor: " + index + " received ping on port " + i + "!");
-                else
-                    pingInFlight := 0;
-                    numPingsComplete := numPingsComplete + 1;
-                    nextDestination :=  randInt(N - 1);
-                    //println("Actor: " + index + " received pong " + numPingsComplete + " of " + P + " on port " + i + "! Next destination: " + nextDestination);
-                end
+                // println("Actor: " + index + " received ping on port " + i + "!");
             end
 
-            
-            // This action responds to a pong
-            pongResponse: action ==> Out[i]:[1]
+            // Action taken when a pong is received. Chooses the next destination and enables the transmitPing actions. 
+            //
+            // This value of pingOrPong is either a 0 or a 1 value. A 0 indicates that a ping
+            // has been received and a 1 indicates that a pong has been received. 
+            receivedPong: action In[i]:[pingOrPong] ==>
             guard
-                pingReceived = i
+                pingOrPong = 1
             do
-                pingReceived := -1;
-                //println("Actor: " + index + " sent pong to destination port " + i);
+                pingInFlight := 0;
+                numPingsComplete := numPingsComplete + 1;
+                nextDestination :=  randInt(N - 1);
+                // println("Actor: " + index + " received pong " + numPingsComplete + " of " + P + " on port " + i + "! Next destination: " + nextDestination);
             end
+
         end
     end
 
