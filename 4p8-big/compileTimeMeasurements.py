@@ -51,7 +51,7 @@ for N_index in range(len(N_values)):
         shell=True,
     )
     (out, err) = proc.communicate()
-    if err is None:  # This error check does not work yet - always returns none even if the command fails
+    if err is not None:  # This error check does not work yet - always returns none even if the command fails
         raise Exception(f"Return code equal to {err}, expected 0")
     compileTime_s = time.time() - start
     outputs.append(out)
@@ -73,13 +73,13 @@ f.write(configFileContents)
 f.close()
 
 # 4. Extract the timing information from the outputs and store in a 2D list
-phaseTitles = ["Title\\N"]
+phaseTitles = ["Title\\N", "Total Runtime (ms)"]
 csvOutput = []
 
 first = True
 for N, output in zip(N_values, outputs):
-
-    timingResults = [N]
+    totalRuntimeTime_ms = 0;
+    timingResults = [N, 0]
 
     for line in iter(output.splitlines()):
         # Skip the first line as it contains information that we do not need.
@@ -97,12 +97,14 @@ for N, output in zip(N_values, outputs):
             phaseTitles.append(phaseTitle)
 
         runtime_ms = int(line[openParenthIndex + 1: endDigitIndex])
+        totalRuntimeTime_ms +=  runtime_ms
         timingResults.append(runtime_ms)
 
     if first:
         first = False
         csvOutput.append(phaseTitles)
 
+    timingResults[1] = totalRuntimeTime_ms
     csvOutput.append(timingResults)
 
 # Switch rows and columns as this is easier to read
