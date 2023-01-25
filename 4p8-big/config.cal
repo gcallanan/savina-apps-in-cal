@@ -1,4 +1,4 @@
 namespace big:
-    uint numMessengers = 5;
-    uint numPingPongs = 1000000;
+    uint numMessengers = 2;
+    uint numPingPongs = 1000;
 end
