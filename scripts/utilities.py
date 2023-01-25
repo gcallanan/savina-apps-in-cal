@@ -3,7 +3,7 @@ import string
 import time
 import subprocess
 import csv
-import scripts.benchmark as benchmark
+import benchmark as benchmark
 
 from typing import List
 from dataclasses import dataclass
