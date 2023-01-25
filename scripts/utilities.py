@@ -8,10 +8,12 @@ import scripts.benchmark as benchmark
 from typing import List
 from dataclasses import dataclass
 
+
 @dataclass
 class RuntimeExperimentResults:
     experimentParameters: dict
     runTime_s: float
+
 
 @dataclass
 class CompileTimeExperimentResults:
@@ -20,28 +22,38 @@ class CompileTimeExperimentResults:
     phasesTimingOutput: str
     amSizeOutput: str
 
+
 def makeDataDir(exper: benchmark.Benchmark):
     directory = exper.__DIRECTORY__
     command = f"mkdir -p {directory}/data"
     retCode = os.system(command)
     if retCode != 0:
-        raise Exception(f"Could not create directory '{directory}/data'. Return code equal to {retCode}, expected 0")
+        raise Exception(
+            f"Could not create directory '{directory}/data'. Return code equal to {retCode}, expected 0"
+        )
 
 
-def buildActor(actorName: string, directory: string, phase_timers: bool = False, am_statistics: bool = False) -> None:
+def buildActor(
+    actorName: string,
+    directory: string,
+    phase_timers: bool = False,
+    am_statistics: bool = False,
+) -> None:
     phase_timers_flag = ""
-    if(phase_timers):
+    if phase_timers:
         phase_timers_flag = "--set phase-timer=on"
 
     am_statistics_flag = ""
-    if(am_statistics):
+    if am_statistics:
         am_statistics_flag = "--set print-am-statistics=on"
-    
+
     # 1. remove and recreate target directory
     command = f"rm -rf {directory}/build && mkdir {directory}/build"
     retCode = os.system(command)
     if retCode != 0:
-        raise Exception(f"Could not build {actorName}. Return code equal to {retCode}, expected 0")
+        raise Exception(
+            f"Could not build {actorName}. Return code equal to {retCode}, expected 0"
+        )
 
     # 2 Build and compile, capture the output
     command = f"tychoc --set experimental-network-elaboration=on {am_statistics_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
@@ -58,24 +70,30 @@ def buildActor(actorName: string, directory: string, phase_timers: bool = False,
     if (
         err is not None
     ):  # This error check does not work yet - always returns none even if the command fails
-        raise Exception(f"Return code equal to {err}, expected 0 when compiling {actorName}")
+        raise Exception(
+            f"Return code equal to {err}, expected 0 when compiling {actorName}"
+        )
     compileTime_s = time.time() - start
 
     # 3. Generate binary from C
     command = f"cc  {directory}/build/*.c -o {directory}/build/calBinary"
     exitCode = os.system(command)
     if exitCode != 0:
-        raise Exception(f"'{command}' returned non-zero exit code when compiling C for {actorName}.")
-
+        raise Exception(
+            f"'{command}' returned non-zero exit code when compiling C for {actorName}."
+        )
 
     return out.decode("ASCII"), compileTime_s
 
-def runActor(directory: string, inputFileList: List[str], outputFileList: List[str]) -> None:
-    
+
+def runActor(
+    directory: string, inputFileList: List[str], outputFileList: List[str]
+) -> None:
+
     inputArgumentFileNames = " ".join(inputFileList)
     outputArgumentsFileName = " ".join(outputFileList)
     command = f"{directory}/build/calBinary {inputArgumentFileNames} {outputArgumentsFileName}"
-    
+
     start = time.time()
     exitCode = os.system(command)
     if exitCode != 0:
@@ -92,12 +110,15 @@ def writeConfigFile(exper: benchmark.Benchmark, experimentParam: List[dict]):
     f.write(contents)
     f.close()
 
+
 def writeCompilerFiles(directory: string, results: List[CompileTimeExperimentResults]):
     command = f"mkdir -p {directory}/statistics"
     retCode = os.system(command)
     if retCode != 0:
-        raise Exception(f"Could not create directory '{directory}/statistics'. Return code equal to {retCode}, expected 0")
-    
+        raise Exception(
+            f"Could not create directory '{directory}/statistics'. Return code equal to {retCode}, expected 0"
+        )
+
     csvData = formatPhaseTimingResults(results)
     with open(f"{directory}/statistics/compilePhaseTimes.csv", "w", newline="") as f:
         writer = csv.writer(f)
@@ -108,6 +129,7 @@ def writeCompilerFiles(directory: string, results: List[CompileTimeExperimentRes
         writer = csv.writer(f)
         writer.writerows(csvData)
 
+
 def formatPhaseTimingResults(results: List[CompileTimeExperimentResults]) -> List[List]:
     expParamsHeading = ["key: " + x for x in results[0].experimentParameters.keys()]
 
@@ -117,7 +139,9 @@ def formatPhaseTimingResults(results: List[CompileTimeExperimentResults]) -> Lis
     first = True
     for output in results:
         totalRuntimeTime_ms = 0
-        expParamsValues = [output.experimentParameters[x] for x in output.experimentParameters.keys()]
+        expParamsValues = [
+            output.experimentParameters[x] for x in output.experimentParameters.keys()
+        ]
         timingResults = expParamsValues + [0]
 
         for line in iter(output.phasesTimingOutput.splitlines()):
@@ -150,7 +174,10 @@ def formatPhaseTimingResults(results: List[CompileTimeExperimentResults]) -> Lis
 
     return csvOutput
 
-def formatAmStatisticsResults(results: List[CompileTimeExperimentResults]) -> List[List]:
+
+def formatAmStatisticsResults(
+    results: List[CompileTimeExperimentResults],
+) -> List[List]:
     titles = ["key: " + x for x in results[0].experimentParameters.keys()]
     csvOutput = []
 
@@ -167,17 +194,25 @@ def formatAmStatisticsResults(results: List[CompileTimeExperimentResults]) -> Li
         for line in lines[1:]:
             if line == "":
                 continue
-            expParamsValues = [output.experimentParameters[x] for x in output.experimentParameters.keys()]
+            expParamsValues = [
+                output.experimentParameters[x]
+                for x in output.experimentParameters.keys()
+            ]
             csvOutput.append(expParamsValues + line.split(","))
 
     return csvOutput
 
-def writeRuntimeFiles(directory: string, results: List[RuntimeExperimentResults], depVarKey: string):
+
+def writeRuntimeFiles(
+    directory: string, results: List[RuntimeExperimentResults], depVarKey: string
+):
     command = f"mkdir -p {directory}/statistics"
     retCode = os.system(command)
     if retCode != 0:
-        raise Exception(f"Could not create directory '{directory}/statistics'. Return code equal to {retCode}, expected 0")
-    
+        raise Exception(
+            f"Could not create directory '{directory}/statistics'. Return code equal to {retCode}, expected 0"
+        )
+
     # Generate our array for results
     formatedResults = {}
     for output in results:
@@ -188,10 +223,10 @@ def writeRuntimeFiles(directory: string, results: List[RuntimeExperimentResults]
 
         if not key in formatedResults:
             formatedResults[key] = {}
-        
+
         formatedResults[key][output.experimentParameters[depVarKey]] = output.runTime_s
 
-    # create a nicely formated list    
+    # create a nicely formated list
     independentVars = [x for x in newDict.keys()]
     depVarsValues = [x for x in formatedResults[key].keys()]
     depVarsTitles = [depVarKey + "=" + str(x) for x in formatedResults[key].keys()]
@@ -206,6 +241,3 @@ def writeRuntimeFiles(directory: string, results: List[RuntimeExperimentResults]
     with open(f"{directory}/statistics/runtimes.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(csvOutput)
-
-    
-

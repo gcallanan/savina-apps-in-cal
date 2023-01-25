@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+
 class Benchmark(ABC):
     def __init__(self):
         self.__BENCHMARK_NAME__ = ""
         self.__DIRECTORY__ = ""
         self.__TOP_ACTOR_NAME__ = ""
-    
+
     @abstractmethod
     def getAMScalingParameters(self) -> List[tuple]:
         pass
@@ -35,7 +36,7 @@ class Benchmark(ABC):
     def getDependentVariableKey(self) -> str:
         pass
 
-    #@property
-    #@abstractmethod
-    #def __DIRECTORY__(self):
+    # @property
+    # @abstractmethod
+    # def __DIRECTORY__(self):
     #    pass
