@@ -21,6 +21,7 @@ class CompileTimeExperimentResults:
     compileTime_s: float
     phasesTimingOutput: str
     amSizeOutput: str
+    preAmSizeMeasurement: bool
 
 
 def makeDataDir(exper: benchmark.Benchmark):
@@ -37,15 +38,20 @@ def buildActor(
     actorName: string,
     directory: string,
     phase_timers: bool = False,
-    am_statistics: bool = False,
+    am_statistics_post_reduction: bool = False,
+    am_statistics_pre_reduction: bool = False, # Can take a very long time or crash when compiling
 ) -> None:
     phase_timers_flag = ""
     if phase_timers:
         phase_timers_flag = "--set phase-timer=on"
 
-    am_statistics_flag = ""
-    if am_statistics:
-        am_statistics_flag = "--set print-am-statistics=on"
+    am_statistics_post_reduction_flag = ""
+    if am_statistics_post_reduction:
+        am_statistics_post_reduction_flag = "--set print-am-statistics-post-reduction=on"
+
+    am_statistics_pre_reduction_flag = ""
+    if am_statistics_pre_reduction:
+        am_statistics_pre_reduction_flag = "--set print-am-statistics-pre-reduction=on"
 
     # 1. remove and recreate target directory
     command = f"rm -rf {directory}/build && mkdir {directory}/build"
@@ -56,7 +62,7 @@ def buildActor(
         )
 
     # 2 Build and compile, capture the output
-    command = f"tychoc --set experimental-network-elaboration=on {am_statistics_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
+    command = f"tychoc --set experimental-network-elaboration=on {am_statistics_post_reduction_flag} {am_statistics_pre_reduction_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
     start = time.time()
     proc = subprocess.Popen(
         [
@@ -110,27 +116,15 @@ def writeConfigFile(exper: benchmark.Benchmark, experimentParam: List[dict]):
     f.write(contents)
     f.close()
 
-
-def writeCompilerFiles(directory: string, results: List[CompileTimeExperimentResults]):
+def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperimentResults]) -> List[List]:
     command = f"mkdir -p {directory}/statistics"
     retCode = os.system(command)
     if retCode != 0:
         raise Exception(
             f"Could not create directory '{directory}/statistics'. Return code equal to {retCode}, expected 0"
         )
-
-    csvData = formatPhaseTimingResults(results)
-    with open(f"{directory}/statistics/compilePhaseTimes.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerows(csvData)
-
-    csvData = formatAmStatisticsResults(results)
-    with open(f"{directory}/statistics/amSizeStatistics.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerows(csvData)
-
-
-def formatPhaseTimingResults(results: List[CompileTimeExperimentResults]) -> List[List]:
+    
+    
     expParamsHeading = ["key: " + x for x in results[0].experimentParameters.keys()]
 
     phaseTitles = expParamsHeading + ["Total Runtime (ms)"]
@@ -172,13 +166,26 @@ def formatPhaseTimingResults(results: List[CompileTimeExperimentResults]) -> Lis
     # Switch rows and columns as this is easier to read
     csvOutput = list(map(list, zip(*csvOutput)))
 
-    return csvOutput
+    with open(f"{directory}/statistics/compilePhaseTimes.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerows(csvOutput)
 
 
-def formatAmStatisticsResults(
+def writeAmStatisticsResults(
+    directory: string,
     results: List[CompileTimeExperimentResults],
+    fileNameAppend: str = ""
 ) -> List[List]:
-    titles = ["key: " + x for x in results[0].experimentParameters.keys()]
+
+    command = f"mkdir -p {directory}/statistics"
+    retCode = os.system(command)
+    if retCode != 0:
+        raise Exception(
+            f"Could not create directory '{directory}/statistics'. Return code equal to {retCode}, expected 0"
+        )
+
+
+    titles = ["key: preOrPostReduction"] + ["key: " + x for x in results[0].experimentParameters.keys()]
     csvOutput = []
 
     first = True
@@ -194,13 +201,18 @@ def formatAmStatisticsResults(
         for line in lines[1:]:
             if line == "":
                 continue
-            expParamsValues = [
+
+            preTag = "pre" if output.preAmSizeMeasurement else "post"
+
+            expParamsValues = [preTag] + [
                 output.experimentParameters[x]
                 for x in output.experimentParameters.keys()
             ]
             csvOutput.append(expParamsValues + line.split(","))
 
-    return csvOutput
+    with open(f"{directory}/statistics/amSizeStatistics_{fileNameAppend}.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerows(csvOutput)
 
 
 def writeRuntimeFiles(
