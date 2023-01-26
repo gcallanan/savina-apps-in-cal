@@ -40,6 +40,7 @@ def buildActor(
     phase_timers: bool = False,
     am_statistics_post_reduction: bool = False,
     am_statistics_pre_reduction: bool = False, # Can take a very long time or crash when compiling
+    timeout_s = 100000,
 ) -> None:
     phase_timers_flag = ""
     if phase_timers:
@@ -64,17 +65,11 @@ def buildActor(
     # 2 Build and compile, capture the output
     command = f"tychoc --set experimental-network-elaboration=on {am_statistics_post_reduction_flag} {am_statistics_pre_reduction_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
     start = time.time()
-    proc = subprocess.Popen(
-        [
-            command,
-            ".",
-        ],
-        stdout=subprocess.PIPE,
-        shell=True,
-    )
-    (out, err) = proc.communicate()
+    procRet = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True, timeout=timeout_s)
+    err = procRet.stderr
+    out = procRet.stdout
     if (
-        err is not None
+        err is not ''
     ):  # This error check does not work yet - always returns none even if the command fails
         raise Exception(
             f"Return code equal to {err}, expected 0 when compiling {actorName}"
@@ -89,7 +84,7 @@ def buildActor(
             f"'{command}' returned non-zero exit code when compiling C for {actorName}."
         )
 
-    return out.decode("ASCII"), compileTime_s
+    return out, compileTime_s
 
 
 def runActor(

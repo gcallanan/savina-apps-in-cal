@@ -1,5 +1,6 @@
 import time
 import utilities
+import subprocess
 from benchmark import Benchmark
 
 from typing import List
@@ -118,39 +119,46 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
     utilities.writeCompilerPhaseFiles(benchmark.__DIRECTORY__, compilerExperimentResults)
     utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAmReduction")
 
-    longestRuntime = 
+    
 
-    # 2. Collect stats pre-am reduction
-    testIndex = 0
-    for experimentParam in experimentParams:
-        runningTime_s = round(time.time() - startTime_s, 2)
+    if(collectPreReductionStats):
+        timeout_s = compilerExperimentResults[-1].compileTime_s*10 if compilerExperimentResults[-1].compileTime_s*10 > 240 else 240
+        # 2. Collect stats pre-am reduction
+        testIndex = 0
+        for experimentParam in experimentParams:
+            runningTime_s = round(time.time() - startTime_s, 2)
 
-        utilities.writeConfigFile(benchmark, experimentParam)
+            utilities.writeConfigFile(benchmark, experimentParam)
 
-        print(
-            f"{runningTime_s:07.2f} Running pre-reduction AM statistics collection test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
-            experimentParam,
-        )
-
-        compilerAmOutput, compileTime_s = utilities.buildActor(
-            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_pre_reduction=True
-        )
-
-        compilerExperimentResults.append(
-            utilities.CompileTimeExperimentResults(
-                experimentParam, compileTime_s, "", compilerAmOutput, True
+            print(
+                f"{runningTime_s:07.2f} Running pre-reduction AM statistics collection test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
+                experimentParam,
             )
-        )
-        testIndex += 1
 
-    utilities.writeConfigFile(
-        benchmark, experimentParams[0]
-    )  # reset to prevent git commit issues
+            try:
+                compilerAmOutput, compileTime_s = utilities.buildActor(
+                    benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_pre_reduction=True, timeout_s=timeout_s
+                )
+            except subprocess.TimeoutExpired:
+                print("Timeout")
+                break
 
-    runningTime_s = round(time.time() - startTime_s, 2)
-    print(f"{runningTime_s:07.2f} Done running pre-reduction AM statistics collection tests for {benchmark.__TOP_ACTOR_NAME__}.")
 
-    utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAndPreAmReduction")
+            compilerExperimentResults.append(
+                utilities.CompileTimeExperimentResults(
+                    experimentParam, compileTime_s, "", compilerAmOutput, True
+                )
+            )
+            testIndex += 1
+
+        utilities.writeConfigFile(
+            benchmark, experimentParams[0]
+        )  # reset to prevent git commit issues
+
+        runningTime_s = round(time.time() - startTime_s, 2)
+        print(f"{runningTime_s:07.2f} Done running pre-reduction AM statistics collection tests for {benchmark.__TOP_ACTOR_NAME__}.")
+
+        utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAndPreAmReduction")
 
 if __name__ == "__main__":
     benchmarks = [big_4p8()]
