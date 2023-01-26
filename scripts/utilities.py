@@ -63,13 +63,13 @@ def buildActor(
         )
 
     # 2 Build and compile, capture the output
-    command = f"tychoc --set experimental-network-elaboration=on {am_statistics_post_reduction_flag} {am_statistics_pre_reduction_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
+    command = f"tychoc --set experimental-network-elaboration=on --set reporting-level=error {am_statistics_post_reduction_flag} {am_statistics_pre_reduction_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
     start = time.time()
     procRet = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True, timeout=timeout_s)
     err = procRet.stderr
     out = procRet.stdout
     if (
-        err is not ''
+        err != ''
     ):  # This error check does not work yet - always returns none even if the command fails
         raise Exception(
             f"Return code equal to {err}, expected 0 when compiling {actorName}"
@@ -137,7 +137,7 @@ def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperime
             # Skip the first line as it contains information that we do not need.
             if line == "Execution time report:":
                 continue
-
+                
             # line formated as: '<phasename> (<time> ms)' need to unpack this
             openParenthIndex = line.rindex("(")
             endDigitIndex = line.rindex(" ms)")

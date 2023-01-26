@@ -122,7 +122,7 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
     
 
     if(collectPreReductionStats):
-        timeout_s = compilerExperimentResults[-1].compileTime_s*10 if compilerExperimentResults[-1].compileTime_s*10 > 240 else 240
+        timeout_s = compilerExperimentResults[-1].compileTime_s*10 if compilerExperimentResults[-1].compileTime_s*10 > 480 else 480
         # 2. Collect stats pre-am reduction
         testIndex = 0
         for experimentParam in experimentParams:
@@ -140,7 +140,7 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
                     benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_pre_reduction=True, timeout_s=timeout_s
                 )
             except subprocess.TimeoutExpired:
-                print("Timeout")
+                print("Timeout:", timeout_s, "s")
                 break
 
 
