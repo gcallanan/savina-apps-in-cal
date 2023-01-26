@@ -1,0 +1,6 @@
+namespace trapezoid:
+    int N = 7;//10000000; // num pieces
+    int W = 100; // num workers
+    double L = 1; // left end-point
+    double R = 5; // right end-point
+end

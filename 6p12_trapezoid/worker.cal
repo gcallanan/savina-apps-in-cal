@@ -1,0 +1,50 @@
+namespace trapezoid:
+    import System.math.cos;
+    import System.math.sin;
+    import System.math.exp;
+    import System.math.sqrt;
+
+    function fx(float x) --> float:
+        1/(x+1)*sqrt(1+exp(sqrt(2*x)))*sin(x*x*x-1)
+    end
+
+    // Need to pass the number of trapezoids to this
+    actor Worker () float In ==> float Out:
+
+        approximate: action In:[a, b] ==> Out:[area]
+        var
+            float lx,
+            float rx,
+            float ly,
+            float ry,
+            float area := 0,
+            float step := (b-a)/N,
+            float n := 0
+        do
+            println("a:" + a);
+            println("b:" + b);
+
+            while n<N do
+                lx := step*n + a;
+                rx := lx + step;
+                ly := fx(lx);
+                ry := fx(rx);
+                area := area + 0.5 * (ly + ry) * step;
+                //println(n + " " + lx + " to " + rx + ". " + ly + " and " + ry + ". area:" + 0.5 * (ly + ry) * step + " . Accu:" + area);
+                n := n+1;
+            end
+
+            println("area:" + area);
+        end
+
+        /*uint temp := 0;
+
+        action ==> Out:[1.2,2.3] 
+        guard
+            temp = 0
+        do
+            temp := 1;
+        end*/
+    end
+
+end
