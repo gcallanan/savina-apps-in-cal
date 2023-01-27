@@ -6,6 +6,7 @@ from benchmark import Benchmark
 from typing import List
 from copy import deepcopy
 from big_4p8 import big_4p8
+from trapezoid_6p12 import trapezoid_6p12
 
 
 def generateExperimentParams(params: List[tuple]) -> List[dict]:
@@ -161,7 +162,7 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
         utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAndPreAmReduction")
 
 if __name__ == "__main__":
-    benchmarks = [big_4p8()]
+    benchmarks = [trapezoid_6p12()]#[big_4p8()]
 
     index = 1
     start = time.time()

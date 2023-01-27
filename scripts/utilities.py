@@ -77,7 +77,7 @@ def buildActor(
     compileTime_s = time.time() - start
 
     # 3. Generate binary from C
-    command = f"cc -lm  {directory}/build/*.c -o {directory}/build/calBinary"
+    command = f"cc  {directory}/build/*.c -o {directory}/build/calBinary -lm"
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(
