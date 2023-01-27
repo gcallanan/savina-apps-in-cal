@@ -11,7 +11,8 @@ class trapezoid_6p12(benchmark.Benchmark):
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [
-            ("W", [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]),
+            #("W", [1, 5, 10, 20, 30, 40, 50]),
+            ("W", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40, 50]),
         ]
         return parameters
 
@@ -19,7 +20,8 @@ class trapezoid_6p12(benchmark.Benchmark):
         parameters = self.getAMScalingParameters()
 
         parameters = parameters + [
-            ("N", [1000, 10000, 100000]),
+            #("N", [10000]),
+            ("N", [10000, 20000, 40000, 70000, 100000]),
         ]
         return parameters
 
@@ -38,16 +40,16 @@ end
 
     # Need something to confirm correctness
     def confirmRuntime(self, **kwargs) -> bool:
-        # N = kwargs["N"]
-        # P = kwargs["P"]
-        #
-        # with open(self.__DIRECTORY__ + "/data/out", mode="rb") as file:
-        #     fileContent = file.read()
-        #     checksum = struct.unpack("i", fileContent)
-        #     if checksum[0] != N:
-        #         raise Exception(
-        #             f"N={N}, P={P}. Checksum value: {checksum[0]}, expected {N}"
-        #         )
+        N = kwargs["N"]
+        W = kwargs["W"]
+        
+        with open(self.__DIRECTORY__ + "/data/out", mode="rb") as file:
+            fileContent = file.read()
+            checksum = struct.unpack("f", fileContent)
+            if checksum[0] < 0.271078 or checksum[0] > 0.271082 :
+                raise Exception(
+                    f"W={W}, N={N}. Checksum value: {checksum[0]}, expected between 0.271079 and 0.271081"
+                )
 
         return True
 

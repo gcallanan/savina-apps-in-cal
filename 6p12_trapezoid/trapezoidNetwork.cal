@@ -1,4 +1,15 @@
 namespace trapezoid:
+    // Entity that creates the network of workers and coordinator actor to 
+    // implement the trapezoid benchmark.
+    //
+    // The W worker actors all connect to a different port on the Coordinator actor.
+    //
+    // The W actors and N trapezoids as well as the left (L) and right (bounds)
+    // of the integral are defined in config.cal
+    //
+    // Ports:
+    //     Area - The output from the coordinator actor. Outputs a single token
+    //            indicating the total calculated area.
     network TrapezoidNetwork() ==> float Area:
     entities
         workers = [Worker(dummy=0): for i in 0..W-1];

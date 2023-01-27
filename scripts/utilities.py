@@ -68,10 +68,8 @@ def buildActor(
     procRet = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True, timeout=timeout_s)
     err = procRet.stderr
     out = procRet.stdout
-    if (
-        err != ''
-    ):  # This error check does not work yet - always returns none even if the command fails
-        raise Exception(
+    if (err != ''): 
+        raise RuntimeError(
             f"Return code equal to {err}, expected 0 when compiling {actorName}"
         )
     compileTime_s = time.time() - start

@@ -8,7 +8,22 @@ from copy import deepcopy
 from big_4p8 import big_4p8
 from trapezoid_6p12 import trapezoid_6p12
 
+"""
+Generate a list of individual experiments from all combinations of the parameters in the input list
+Eg: 
+    [
+        ("W", [1, 5])
+        ("N", [10000, 20000])
+    ]
 
+Transforms to:
+    [
+        {W=1, N=10000},
+        {W=1, N=10000},
+        {W=5, N=20000},
+        {W=5, N=20000},
+    ]
+"""
 def generateExperimentParams(params: List[tuple]) -> List[dict]:
     paramsCopy = deepcopy(params)
     output = []
@@ -32,7 +47,13 @@ def generateExperimentParams(params: List[tuple]) -> List[dict]:
     return output
 
 
-# 1. Run timing experiements
+"""
+Run all experiments where the runtime of the actor network is recorded. These experiments
+parameters are determined based on the benchmark.getBuildParameters() function.
+
+The output for these results are stored in:
+    <benchmark directory>/statistics/runtimes.csv
+"""
 def runRuntimeExperiments(benchmark: Benchmark):
     experimentParams = generateExperimentParams(benchmark.getBuildParameters())
     testIndex = 0
@@ -77,7 +98,22 @@ def runRuntimeExperiments(benchmark: Benchmark):
     )
 
 
-# 2. Run compilation experiments
+"""
+Run all experiments where the compile time of the actor network is recorded. These experiments
+parameters are determined based on the benchmark.getAMScalingParameters function.
+
+Results that are recorded for each experiment include:
+    1. Time taken to run each compiler phase (stored in <benchmark directory>/statistics/compilePhaseTimes.csv)
+    2. Size of the actor machines for each actor after the AM reduction has been performed (stored
+       in <benchmark directory>/statistics/amSizeStatistics_postAmReduction.csv)
+    3. Size of the actor machines for each actor before AM reduction has been perfomed. stored
+       in <benchmark directory>/statistics/amSizeStatistics_postAndPreAmReduction.csv Note: the
+       sizes after the reduction are also included here to make comparisons easier) 
+
+@param collectPreReductionStats Experiment 3 above can take a very long time to run with a risk of
+                                crashing. Set this flag to false to prevent running this test and 
+                                speed up testing by orders of magnitude.
+"""
 def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = False):
     experimentParams = generateExperimentParams(benchmark.getAMScalingParameters())
     testIndex = 0
@@ -123,7 +159,7 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
     
 
     if(collectPreReductionStats):
-        timeout_s = compilerExperimentResults[-1].compileTime_s*10 if compilerExperimentResults[-1].compileTime_s*10 > 480 else 480
+        timeout_s = compilerExperimentResults[-1].compileTime_s*10 if compilerExperimentResults[-1].compileTime_s*10 > 900 else 900
         # 2. Collect stats pre-am reduction
         testIndex = 0
         for experimentParam in experimentParams:
@@ -143,6 +179,9 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
             except subprocess.TimeoutExpired:
                 print("Timeout:", timeout_s, "s")
                 break
+            except RuntimeError:
+                print("Runtime error on collect stats pre-am reduction")
+                break
 
 
             compilerExperimentResults.append(
@@ -161,6 +200,7 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
 
         utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAndPreAmReduction")
 
+# Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
     benchmarks = [trapezoid_6p12()]#[big_4p8()]
 

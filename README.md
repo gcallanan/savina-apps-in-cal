@@ -1,5 +1,9 @@
 # Savina Apps in CAL
 
+Run Savaina benchmarks using Tycho and the CAL actor language.
+
+To run all the experiemnts execute `python3 scripts/runExperiments.py` from the terminal. Note this can take hours to run, so be ready. 
+
 All apps here taken from the Savina Actor Benchmark paper.
 
 @inproceedings{10.1145/2687357.2687368,
@@ -21,3 +25,6 @@ All apps here taken from the Savina Actor Benchmark paper.
 }
 
 The github for the Savina framework is available [here](https://github.com/shamsimam/savina).
+
+# Requirements
+1. [streamblocks-tycho](https://git.cs.lth.se/dataflow/streamblocks-tycho) on the LU gitlab servers has been installed and you are using branch "EntityRenamingBug" branch. We use the the tychoc binary in the streamblocks-tycho repo, not the streamblocks binary in the [streamblocks-platforms](https://git.cs.lth.se/dataflow/streamblocks-tycho/-/tree/EntityRenamingBug) repo to build.
