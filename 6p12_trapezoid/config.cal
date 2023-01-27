@@ -1,6 +1,6 @@
 namespace trapezoid:
-    int N = 7;//10000000; // num pieces
-    int W = 100; // num workers
-    double L = 1; // left end-point
-    double R = 5; // right end-point
+    int N = 100000;// 10000000; // num pieces (in total, each worker gets N/W pieces)
+    int W = 1; // num workers
+    float L = 1; // left end-point
+    float R = 5; // right end-point
 end

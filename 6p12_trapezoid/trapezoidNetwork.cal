@@ -1,0 +1,13 @@
+namespace trapezoid:
+    network TrapezoidNetwork() ==> float Area:
+    entities
+        workers = [Worker(dummy=0): for i in 0..W-1];
+        coordinator = Coordinator();
+    structure
+        foreach uint i in 0..W-1 do
+            coordinator.Out[i] --> workers[i].In;
+            workers[i].Out --> coordinator.In[i];
+        end
+        coordinator.Area --> Area;
+    end
+end

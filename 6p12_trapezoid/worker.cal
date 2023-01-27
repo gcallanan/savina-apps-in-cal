@@ -9,42 +9,30 @@ namespace trapezoid:
     end
 
     // Need to pass the number of trapezoids to this
-    actor Worker () float In ==> float Out:
+    actor Worker (int dummy) float In ==> float Out:
 
-        approximate: action In:[a, b] ==> Out:[area]
+        approximate: action In:[lbound, rbound, pieceSize, piecesToCompute] ==> Out:[area]
         var
-            float lx,
+            float lx := lbound,
             float rx,
             float ly,
             float ry,
             float area := 0,
-            float step := (b-a)/N,
-            float n := 0
+            int n := piecesToCompute,
+            int index := 0
         do
-            println("a:" + a);
-            println("b:" + b);
-
-            while n<N do
-                lx := step*n + a;
-                rx := lx + step;
+            while index<n do
+                lx := lbound + index * pieceSize;
+                rx := lx + pieceSize;
                 ly := fx(lx);
                 ry := fx(rx);
-                area := area + 0.5 * (ly + ry) * step;
-                //println(n + " " + lx + " to " + rx + ". " + ly + " and " + ry + ". area:" + 0.5 * (ly + ry) * step + " . Accu:" + area);
-                n := n+1;
+                area := area + 0.5 * (ly + ry) * pieceSize;
+                //println(index + "/" + n + " " + lx + " to " + rx + ". " + ly + " and " + ry + ". area:" + 0.5 * (ly + ry) * pieceSize + " . Accu:" + area);
+                index:= index+1;
             end
-
-            println("area:" + area);
+            // println("area:" + area);
+            // println("Left:" + lbound + ", Right: " + rbound + ", stepSize: " + pieceSize + " piecesPerWorker: " + piecesToCompute + " n " + n  + ", area: " + area);
         end
-
-        /*uint temp := 0;
-
-        action ==> Out:[1.2,2.3] 
-        guard
-            temp = 0
-        do
-            temp := 1;
-        end*/
     end
 
 end

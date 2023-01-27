@@ -1,0 +1,50 @@
+namespace trapezoid:
+
+    actor Coordinator () float In[W] ==> float Out[W], float Area:
+
+        initialise: action ==> Out[0..W-1]:[out] repeat 4
+        var
+            float pieceSize = (R-L)/N,
+            float rangePerWorker,
+            int currentWorkerPieces,
+            int piecesPerWorkerRemainder = N % W,
+            int piecesPerWorker = (N - piecesPerWorkerRemainder) / W,
+            uint index := 0,
+            List(type: List(type: float, size = 4), size = N) out
+        do
+            
+            //println("Init pieces: " + piecesPerWorker + " rem: " + piecesPerWorkerRemainder);
+
+            foreach uint i in 0..W-1 do
+                out[i][0] := L + i * piecesPerWorker * pieceSize;
+                if i != W - 1 then
+                    currentWorkerPieces := piecesPerWorker;
+                else
+                    currentWorkerPieces := piecesPerWorker + piecesPerWorkerRemainder;
+                end
+                out[i][1] := out[i][0] + currentWorkerPieces * pieceSize;
+                out[i][2] := pieceSize;
+                out[i][3] := currentWorkerPieces;
+                index := index + 1;
+            end
+        end
+
+        collect: action In[0..W-1]:[areas] ==> Area:[totalArea]
+        var
+            float totalArea := 0
+        do
+            foreach uint i in 0..W-1 do
+                totalArea := totalArea + areas[i];
+            end
+            //println("Area: " + totalArea);
+        end
+
+        schedule fsm Init:
+            Init  (initialise)--> Collect;
+            Collect  (collect)--> Termination;
+        end
+
+
+    end
+
+end
