@@ -10,7 +10,9 @@ The producer and consumer actors are relativly simple, the buffer actor is more 
 
 A Savina implementation of this benchmark can be found in the [ProdConsHabaneroActorBenchmark.scala](https://github.com/shamsimam/savina/blob/master/src/main/scala/edu/rice/habanero/benchmarks/bndbuffer/ProdConsHabaneroActorBenchmark.scala) with configuration parameters for this benchmark available in [ProdConsBoundedBufferConfig.java](https://github.com/shamsimam/savina/blob/master/src/main/java/edu/rice/habanero/benchmarks/bndbuffer/ProdConsBoundedBufferConfig.java)
 
+[BndBufferNetwork.cal](./BndBufferNetwork.cal) describes the overall network for the benchmark.
+
 ## Quick Run
 From within the 6p12-trapezoid directory:
 1. mkdir build
-2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=on  --source-path . --target-path build trapezoid.TrapezoidNetwork && cc build/*.c -o add -lm && time ./add testOut
+2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=on  --source-path . --target-path build bndBuffer.BndBufferNetwork && cc build/*.c -o add -lm && time ./add testOut

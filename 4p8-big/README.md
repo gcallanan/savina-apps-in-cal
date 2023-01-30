@@ -8,6 +8,7 @@ The benchmark is configured by adjusting N and P.
 
 A Savina implementation of this benchmark can be found in the [BigHabaneroActorBenchmark.scala](https://github.com/shamsimam/savina/blob/master/src/main/scala/edu/rice/habanero/benchmarks/big/BigHabaneroActorBenchmark.scala) with configuration parameters for this benchmark available in [BigConfig.java](https://github.com/shamsimam/savina/blob/master/src/main/java/edu/rice/habanero/benchmarks/big/BigConfig.java)
 
+[BigNetwork.cal](./BigNetwork.cal) describes the overall network for the benchmark.
 
 ## Quick Run
 From within the 4P8-big directory:

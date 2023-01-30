@@ -11,6 +11,8 @@ The benchmark is configured by adjusting W and N.
 
 A Savina implementation of this benchmark can be found in the [TrapezoidalHabaneroActorBenchmark.scala](https://github.com/shamsimam/savina/blob/master/src/main/scala/edu/rice/habanero/benchmarks/trapezoid/TrapezoidalHabaneroActorBenchmark.scala) with configuration parameters for this benchmark available in [TrapezoidalConfig.java](https://github.com/shamsimam/savina/blob/master/src/main/java/edu/rice/habanero/benchmarks/trapezoid/TrapezoidalConfig.java)
 
+[TrapezoidNetwork.cal](./TrapezoidNetwork.cal) describes the overall network for the benchmark.
+
 ## Quick Run
 From within the 6p12-trapezoid directory:
 1. mkdir build
