@@ -27,7 +27,7 @@ namespace big:
         end
 
         // Generate a pingComplete action for every messenger actor.
-        for uint i in 0..N-1 generate
+        foreach uint i in 0..N-1 generate
             // Action that is triggered when a token is received from messenger actor i indicating it has completed its
             // tasks. The value of the token does not matter, only that it exists.
             pingComplete: action In[i]:[throwawayToken] ==>

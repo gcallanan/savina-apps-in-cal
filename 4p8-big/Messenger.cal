@@ -41,7 +41,7 @@ namespace big:
 
         // For every port in the Out/In port arrays, we need to generate the following 3 actions in order to handle the
         // ping/pong TX and RX
-        for uint i in 0..N-2 generate
+        foreach uint i in 0..N-2 generate
             
             // Action taken to transmit a ping.
             //
