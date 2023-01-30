@@ -1,0 +1,20 @@
+namespace bndBuffer:
+    int B = 10;//50; // Buffer size
+    int P = 4; // Number of producers
+    int C = 2; // Number of consumers
+    int numItemsPerProducer = 20;//1000;
+    int prodCost = 25; // Cost to perform action by producer
+    int consCost = 25; // Cost to perform action by consumer
+
+    import var System.math.randInt;
+
+    function abs( float x ) --> float :
+        if x < 0 then - x else x end
+    end
+
+    // As implemented in src/main/java/edu/rice/habanero/benchmarks/PseudoRandom.java of savina benchmark suite
+    // SOme slight changes
+    function randDouble() --> float:
+        1.0/randInt(65536)
+    end
+end

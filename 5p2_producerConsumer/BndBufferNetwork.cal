@@ -1,0 +1,23 @@
+namespace bndBuffer:
+
+    network BndBufferNetwork() ==> :
+    entities
+        producers = [Producer(numItemsPerProducer=numItemsPerProducer, prodCost=prodCost): for i in 0..P-1];
+        consumers = [Consumer(consCost=consCost): for i in 0..C-1];
+        buffer = Buffer();
+    structure
+        //producer.Out --> consumer.In;
+        //consumer.Out --> producer.In;
+
+        foreach uint i in 0..P-1 do
+            producers[i].Out --> buffer.FromProducer[i];
+            buffer.ToProducer[i] --> producers[i].In;
+        end
+
+        foreach uint i in 0..C-1 do
+            consumers[i].Out --> buffer.FromConsumers[i];
+            buffer.ToConsumers[i] --> consumers[i].In;
+        end
+    end
+
+end

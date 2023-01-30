@@ -12,7 +12,13 @@ A Savina implementation of this benchmark can be found in the [ProdConsHabaneroA
 
 [BndBufferNetwork.cal](./BndBufferNetwork.cal) describes the overall network for the benchmark.
 
+A producer only produces items if it receives a request to do so and it has not yet produced numItemsPerProducer items. It is not expected that a producer will receive another work request after it has already received one and before it has completed the request.
+
+A consumer sends a request for items when it is not busy. Only a single request is sent. The buffer will track which consumer have requested items and assign when ready.
+
+The buffer only transmits items to a consumer if there is a request for work from that consumer. The buffer actor will request new items from the producers when there is space on the internal buffer array. NOTE: If there are 3 spaces available on the buffer and 2 producers are busy producing items while 3 other producers are free, then the buffer will only request 1 of them to produce an item. This eliminates the risk of getting more items from producers than there is space available in the buffer
+
 ## Quick Run
-From within the 6p12-trapezoid directory:
+From within the 5p2_producerConsumer directory:
 1. mkdir build
-2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=on  --source-path . --target-path build bndBuffer.BndBufferNetwork && cc build/*.c -o add -lm && time ./add testOut
+2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=off  --source-path . --target-path build bndBuffer.BndBufferNetwork && cc build/*.c -o add -lm && time ./add testOut

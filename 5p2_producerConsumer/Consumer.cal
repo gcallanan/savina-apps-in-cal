@@ -1,0 +1,45 @@
+namespace bndBuffer:
+    import System.math.log;
+    import System.math.exp;
+
+    actor Consumer (int consCost) float In ==> uint(size=2) Out:
+
+        float consItem := 0;
+
+        procedure processItem(float dataItem)
+        var 
+            float tempOut := 0
+        begin
+            tempOut := dataItem + consItem;
+
+            if consCost > 0 then
+                foreach int i in 0..consCost-1 do
+                    foreach int j in 0..100 do
+                        tempOut := tempOut + exp(abs(randDouble()) + 0.01);
+                    end
+                end
+            end
+            
+            consItem := tempOut;
+        end
+
+
+        sendWorkRequest: action ==> Out: [1] 
+        do
+            //println("Consumer requesting work");
+        end
+
+        getWork: action In:[dataItem] ==>
+        do
+            processItem(dataItem);
+            //println("Consumer doing work");
+        end
+
+        schedule fsm SendRequest:
+            SendRequest  (sendWorkRequest)--> Collect;
+            Collect  (getWork)--> SendRequest;
+        end
+
+    end
+
+end

@@ -1,0 +1,198 @@
+namespace bndBuffer:
+
+    actor Buffer() 
+        float FromProducer[P], uint(size=2) FromConsumers[C]
+        ==>
+        uint(size=2) ToProducer[P],  float ToConsumers[C]
+        :
+
+        List(type: uint(size=1), size=P) busyProducers;
+        
+        List(type: float, size=B) buffer;
+        int itemsOnBuffer := 0;
+        int pendingItems := 0;
+
+        foreach uint i in 0..C-1 generate
+            /*getConsumerRequest: action FromConsumers[i]:[token] ==>
+            do
+                freeConsumers[i] := 1;
+
+                print("RX Free Consumers: [");
+                foreach uint j in 0..C-1 do
+                    print(""+freeConsumers[j]+"");
+                end
+                println("]");
+            end*/
+
+            requestFromAndRespondToConsumer: action FromConsumers[i]:[token] ==> ToConsumers[i]:[123]
+            guard
+                itemsOnBuffer > 0
+            do
+                //freeConsumers[i] := 0;
+                itemsOnBuffer := itemsOnBuffer - 1;
+                println("Sending item to consumer " + i + " bufferSize: " + itemsOnBuffer);
+
+                /*print("TX Free Consumers: [");
+                foreach uint j in 0..C-1 do
+                    print(""+freeConsumers[j]+"");
+                end
+                println("]");*/
+            end
+
+        end
+
+        foreach uint i in 0..P-1 generate
+            sendProducerRequest: action ==> ToProducer[i]:[1]
+            guard
+                busyProducers[i] = 0,
+                pendingItems + itemsOnBuffer < B
+            do
+                busyProducers[i] := 1;
+                pendingItems := pendingItems + 1;
+                print("Requesting item from producer: " + i + " [");
+                foreach uint j in 0..P-1 do
+                    print(""+busyProducers[j]+"");
+                end
+                println("] pending items:" + pendingItems + " itemsOnBuffer " + itemsOnBuffer);
+            end
+
+            receiveFromProducer: action FromProducer[i]:[item] ==>
+            do
+                busyProducers[i] := 0;
+                pendingItems := pendingItems - 1;
+                itemsOnBuffer := itemsOnBuffer + 1;
+                print("Receiving item from producer: " + i + " [");
+                foreach uint j in 0..P-1 do
+                    print(""+busyProducers[j]+"");
+                end
+                println("] pending items:" + pendingItems + " itemsOnBuffer " + itemsOnBuffer);
+            end
+        end
+
+
+    end
+
+end
+
+/*
+
+Source file: ./Buffer.cal false
+        Namespace: bndBuffer
+            Global Entity: Buffer
+                Actor Entity
+                    PortDecl: FromProducer
+                        NominalTypeExpr: float
+                        ExprVariable: P
+                            Variable: P
+                    PortDecl: FromConsumers
+                        NominalTypeExpr: uint
+                            Value Parameter: size
+                                ExprLiteral: 2
+                        ExprVariable: C
+                            Variable: C
+                    PortDecl: ToProducer
+                        NominalTypeExpr: uint
+                            Value Parameter: size
+                                ExprLiteral: 2
+                        ExprVariable: P
+                            Variable: P
+                    PortDecl: ToConsumers
+                        NominalTypeExpr: float
+                        ExprVariable: C
+                            Variable: C
+                    LocalVariableDecl: freeConsumers
+                        NominalTypeExpr: List
+                            se.lth.cs.tycho.ir.TypeParameter
+                                NominalTypeExpr: uint
+                                    Value Parameter: size
+                                        ExprLiteral: 1
+                            Value Parameter: size
+                                ExprVariable: C
+                                    Variable: C
+                    LocalVariableDecl: busyProducers
+                        NominalTypeExpr: List
+                            se.lth.cs.tycho.ir.TypeParameter
+                                NominalTypeExpr: uint
+                                    Value Parameter: size
+                                        ExprLiteral: 1
+                            Value Parameter: size
+                                ExprVariable: P
+                                    Variable: P
+                    se.lth.cs.tycho.ir.entity.cal.ActionGeneratorStmt
+                        se.lth.cs.tycho.ir.Generator
+                            NominalTypeExpr: uint
+                            GeneratorVarDecl: i
+                            ExprBinaryOp: Ops: 2 .. - 
+                                ExprLiteral: 0
+                                ExprVariable: C
+                                    Variable: C
+                                ExprLiteral: 1
+                        ActionEntity: getConsumerRequest
+                            Input pattern 
+                                Port: FromConsumers
+                                Match: 
+                                    InputVarDecl:
+                                    ExprCase
+                                        PatternBinding
+                                            PatternVarDecl: token
+                                        ExprLiteral: True
+                                ExprVariable: i
+                                    Variable: i
+                            se.lth.cs.tycho.ir.stmt.StmtAssignment
+                                se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer
+                                    se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable
+                                        Variable: freeConsumers
+                                    ExprVariable: i
+                                        Variable: i
+                                ExprLiteral: 1
+                            se.lth.cs.tycho.ir.stmt.StmtCall
+                                ExprVariable: print
+                                    Variable: print
+                                ExprLiteral: "["
+                            se.lth.cs.tycho.ir.stmt.StmtForeach
+                                se.lth.cs.tycho.ir.Generator
+                                    NominalTypeExpr: uint
+                                    GeneratorVarDecl: j
+                                    ExprBinaryOp: Ops: 2 .. - 
+                                        ExprLiteral: 0
+                                        ExprVariable: C
+                                            Variable: C
+                                        ExprLiteral: 1
+                                se.lth.cs.tycho.ir.stmt.StmtCall
+                                    ExprVariable: print
+                                        Variable: print
+                                    ExprBinaryOp: Ops: 2 + + 
+                                        ExprLiteral: "Free Consumers: "
+                                        se.lth.cs.tycho.ir.expr.ExprIndexer
+                                            ExprVariable: freeConsumers
+                                                Variable: freeConsumers
+                                            ExprVariable: j
+                                                Variable: j
+                                        ExprLiteral: ""
+                            se.lth.cs.tycho.ir.stmt.StmtCall
+                                ExprVariable: println
+                                    Variable: println
+                                ExprLiteral: "]"
+                    se.lth.cs.tycho.ir.entity.cal.ActionGeneratorStmt
+                        se.lth.cs.tycho.ir.Generator
+                            NominalTypeExpr: uint
+                            GeneratorVarDecl: i
+                            ExprBinaryOp: Ops: 2 .. - 
+                                ExprLiteral: 0
+                                ExprVariable: P
+                                    Variable: P
+                                ExprLiteral: 1
+                        ActionEntity: sendProducerRequest
+                            Input pattern 
+                                Port: ToProducer
+                                Match: 
+                                    InputVarDecl:
+                                    ExprCase
+                                        se.lth.cs.tycho.ir.expr.pattern.PatternLiteral
+                                            ExprLiteral: 0
+                                        ExprLiteral: True
+                                ExprVariable: i
+                                    Variable: i
+
+
+ */

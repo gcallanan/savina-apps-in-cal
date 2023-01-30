@@ -1,0 +1,45 @@
+namespace bndBuffer:
+    import System.math.log;
+    import System.math.exp;
+
+    actor Producer (int numItemsPerProducer, int prodCost) uint(size=2) In ==> float Out:
+
+        int numSent := 0;
+        float prodItem := 0;
+
+        procedure processItem()
+        var 
+            float tempOut := 0
+        begin
+            tempOut := prodItem;
+
+            if prodCost > 0 then
+                foreach int i in 0..prodCost-1 do
+                    foreach int j in 0..100 do
+                        tempOut := tempOut + exp(abs(randDouble()) + 0.01);
+                    end
+                end
+            end
+            
+            prodItem := tempOut;
+        end
+
+        sendToken: action ==> Out: [prodItem]
+        guard
+            numSent < numItemsPerProducer
+        do
+            processItem();
+            numSent := numSent + 1;
+            //println("Num Sent: " + numSent + " Prod Item: " + prodItem);
+        end
+
+        getTokenRequest: action In:[token] ==> end
+
+        schedule fsm GetRequest:
+            GetRequest  (getTokenRequest)--> SendToken;
+            SendToken  (sendToken)--> GetRequest;
+        end
+
+    end
+
+end
