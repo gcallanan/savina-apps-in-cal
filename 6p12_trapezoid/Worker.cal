@@ -9,12 +9,14 @@ namespace trapezoid:
         1/(x+1)*sqrt(1+exp(sqrt(2*x)))*sin(x*x*x-1)
     end
 
+    // @author: Gareth Callanan
+    //
     // Worker that calculates the area under f(x) for a certain interval.
     //
     // Parameters:
     //     dummy - Just insert 0 here. The tycho compiler was buggy at the time of writing
-    //           - and could not evaluate [Worker(dummy=0): for i in 0..W-1] in the network
-    //           - without this dummy variable.
+    //             and could not evaluate [Worker(dummy=0): for i in 0..W-1] in the network
+    //             without this dummy variable.
     // Ports:
     //     In - Tokens from the coordinator are received here.
     //     Out - Tokens to the coordinator transmited out here.

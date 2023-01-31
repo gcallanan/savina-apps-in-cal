@@ -1,4 +1,6 @@
 namespace big:
+    // @author: Gareth Callanan
+    //
     // Entity that creates the network of messengers to implement the big benchmark.
     //
     // The N messenger actors and single sink actor are created and connected to each other.

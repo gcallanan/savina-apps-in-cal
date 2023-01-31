@@ -1,4 +1,6 @@
 namespace trapezoid:
+    // @author: Gareth Callanan
+    //    
     // Coordinator that distributes the work of calculating the area under f(x)
     // to the W worker actors. It then collects the results and sums them together
     // to report the total area.

@@ -1,5 +1,6 @@
 namespace big:
-    
+    // @author: Gareth Callanan
+    //
     // Actor that collects done messages from all the actors and reports when they are all complete.
     // (Not really necessary for Tÿcho as CAL programs terminate automatically when there are no actions to execute
     //  but it is part of the big benchmark so it is left in).

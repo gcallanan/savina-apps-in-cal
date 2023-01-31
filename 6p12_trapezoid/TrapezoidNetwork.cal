@@ -1,4 +1,6 @@
 namespace trapezoid:
+    // @author: Gareth Callanan
+    //
     // Entity that creates the network of workers and coordinator actor to 
     // implement the trapezoid benchmark.
     //
