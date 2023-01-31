@@ -9,10 +9,12 @@ class producerConsumer_5p2(benchmark.Benchmark):
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [
-            #("P", [1, 2]),
+            #("P", [1, 2]), # Best for testing
             #("C", [1, 2]),
-            ("P", [1, 2, 3, 4, 5, 6, 7]),
-            ("C", [1, 2, 3, 4 ,5, 6, 7]),
+            ("P", [1, 2, 3, 4]), # Best for unreduced state machine measurements
+            ("C", [1, 2, 3, 4]),
+            #("P", [1, 2, 3, 4, 5, 6, 7]), # Best for runtimes
+            #("C", [1, 2, 3, 4 ,5, 6, 7]),
         ]
         return parameters
 
