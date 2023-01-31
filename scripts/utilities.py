@@ -239,7 +239,7 @@ def writeRuntimeFiles(
     csvOutput = [independentVars + depVarsTitles]
 
     for key, depVarDict in formatedResults.items():
-        keyVals = key.split("_")
+        keyVals = key.split("_") if key != "" else []
         depResults = [formatedResults[key][x] for x in depVarsValues]
         csvOutput.append(keyVals + depResults)
 

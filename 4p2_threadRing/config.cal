@@ -1,0 +1,4 @@
+namespace threadRing:
+    uint N = 25; // Number of actors
+    uint R = 100000; // Number of pings
+end

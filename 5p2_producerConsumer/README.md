@@ -2,7 +2,7 @@
 
 ## General Outline
 
-The Producer-Consumer with a Bounded-Buffer is a benchmark consisting of P producer actors and C consumer actors connected by a single buffer actor of size B. The producers send tokens to the buffer actor which stores them in a buffer. When a consumer is not busy, it sends a request for work to the buffer. The buffer actor will record which consumers are free and transmits data tokens to them when it receives them.
+Producer-Consumer with a Bounded-Buffer is a benchmark consisting of P producer actors and C consumer actors connected by a single buffer actor of size B. The producers send tokens to the buffer actor which stores them in a buffer. When a consumer is not busy, it sends a request for work to the buffer. The buffer actor will record which consumers are free and transmits data tokens to them when it receives them.
 
 The benchmark is configured by adjusting P, C and B.
 
