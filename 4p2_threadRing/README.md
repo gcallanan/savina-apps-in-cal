@@ -2,11 +2,11 @@
 
 ## General Outline
 
-Thread Ring is a benchmark consisting of N actors connected to to each other in a ring. A token is passed around this ring. The token starts with the value R and this value is decremented by 1 on each transmission. Transmission stops when the value being passed by the token
+Thread Ring is a benchmark consisting of N actors connected to to each other in a ring. A token is passed around this ring. The token starts with the value R and this value is decremented by 1 on each transmission. Transmission terminates when the value of the token reaches zero.
 
 The benchmark is configured by adjusting N (the number of actors).
 
-This benchmark is very simple, requiring very simple actors
+This benchmark icreates very simple actors. However it tests how well the system scales when having large amounts of simple actors running. (N can be >> 1000)
 
 A Savina implementation of this benchmark can be found in the [ThreadRingHabaneroActorBenchmark.scala](https://github.com/shamsimam/savina/blob/master/src/main/scala/edu/rice/habanero/benchmarks/threadring/ThreadRingHabaneroActorBenchmark.scala) with configuration parameters for this benchmark available in [ThreadRingConfig.java](https://github.com/shamsimam/savina/blob/master/src/main/java/edu/rice/habanero/benchmarks/threadring/ThreadRingConfig.java)
 
