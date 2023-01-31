@@ -1,198 +1,135 @@
 namespace bndBuffer:
 
+    // @author: Gareth Callanan
+    //
+    // Buffer actor that receives items from Producers and transmits them to Consumers. This
+    // actor manages request for work from the Consumers and transmits requests for work from the 
+    // Producers. All work from producers is stored in a queue constructed internally as a ring
+    // buffer. When a consumer requests an item it receives the item from the front of the queue.
+    // This buffer is designed to never overflow. Requests for items will not be sent to producers
+    // if receiving them could results in overflow.
+    //
+    //
+    // Ports:
+    //     FromProducer - Port array connected to each producer. Receives the requested items from
+    //                    the producers.
+    //     ToProducer - Port array connected to each producer. Transmits requests for items from
+    //                  producers.
+    //     FromConsumers - Port array connected to each consumer. Receives the request for items
+    //                     from the consumers.
+    //     ToConsumers - Port array connected to each consumer. Transmits the requested items to the
+    //                   consumers.
     actor Buffer() 
-        float FromProducer[P], uint(size=2) FromConsumers[C]
+        float FromProducer[P], uint(size=2) FromConsumer[C]
         ==>
-        uint(size=2) ToProducer[P],  float ToConsumers[C]
+        uint(size=2) ToProducer[P],  float ToConsumer[C]
         :
 
+        // List with an element for each producer. If the producer has been sent a request, it is
+        // marked as busy (value set to 1), and no new requests will be sent to it until an
+        // item is received and it is marked as not busy again (value set to 0).
         List(type: uint(size=1), size=P) busyProducers;
         
+        // Start: Variables related to the ring buffer
+        // A ring buffer to store all items received from the producers. This buffer is a queue
+        // with received items being pushed to the back and popped items being removed from the
+        // front. We model this queue as a ring buffer to prevent unecessary copies. The 
+        // bufferFrontLocation tracks the location of the front of the buffer and is incremented by
+        // one every time a new item is popped off. The itemsOnBuffer track how many items are
+        // currently stored on the buffer. The index for the item at the back of the buffer is thus
+        // equal to: (bufferFrontLocation + itemsOnBuffer - 1) % B where B is the buffer size.
         List(type: float, size=B) buffer;
-        int itemsOnBuffer := 0;
+        uint itemsOnBuffer := 0;
+        uint bufferFrontLocation := 0; // Moves as its a circular buffer
+        // End: Variables related to the ring buffer        
+
+        // Number of items we expect to receive from the producers (as in a request has been sent 
+        // to those producers). To prevent buffer overflow, pendingItems + itemsOnBuffer <= B must
+        // always hold.
         int pendingItems := 0;
 
+        // For every consumer, we need to generate an action that transmits an item to the consumer
+        // once i request for the item has been received.
         foreach uint i in 0..C-1 generate
-            /*getConsumerRequest: action FromConsumers[i]:[token] ==>
-            do
-                freeConsumers[i] := 1;
-
-                print("RX Free Consumers: [");
-                foreach uint j in 0..C-1 do
-                    print(""+freeConsumers[j]+"");
-                end
-                println("]");
-            end*/
-
-            requestFromAndRespondToConsumer: action FromConsumers[i]:[token] ==> ToConsumers[i]:[123]
+            
+            // If there is at least one item on the buffer and Consumer i requests an item, then
+            // pop that item from the buffer and transmit it to the consumer.
+            requestFromAndRespondToConsumer: action FromConsumer[i]:[token] ==> ToConsumer[i]:[poppedItem]
             guard
                 itemsOnBuffer > 0
+            var
+                float poppedItem
             do
-                //freeConsumers[i] := 0;
+                // Start: pop from front of buffer - update the bufferFrontLocation pointer and the
+                // number of items on the buffer
+                poppedItem := buffer[bufferFrontLocation];
+                bufferFrontLocation := (bufferFrontLocation + 1) % B;
                 itemsOnBuffer := itemsOnBuffer - 1;
-                println("Sending item to consumer " + i + " bufferSize: " + itemsOnBuffer);
-
-                /*print("TX Free Consumers: [");
-                foreach uint j in 0..C-1 do
-                    print(""+freeConsumers[j]+"");
-                end
-                println("]");*/
+                // End: pop from front of buffer
+                
+                // Useful debugging print.
+                // println("Sending item to consumer " + i + " bufferSize: " + itemsOnBuffer + " Item: " + poppedItem + " bufferFrontLocal: " + bufferFrontLocation);
             end
 
         end
 
+        // For every producer we need to create an action that requests items as well as another 
+        // action that receives requested actions.
         foreach uint i in 0..P-1 generate
+            // Send a request to Producer i for a new item, assuming producer i is not already busy
+            // and there is space on the buffer
             sendProducerRequest: action ==> ToProducer[i]:[1]
             guard
                 busyProducers[i] = 0,
-                pendingItems + itemsOnBuffer < B
+                // Only <, not <= as we need at least 1 empty space to store the new request
+                pendingItems + itemsOnBuffer < B 
             do
                 busyProducers[i] := 1;
                 pendingItems := pendingItems + 1;
+                
+                // Useful debugging print.
+                /*
                 print("Requesting item from producer: " + i + " [");
                 foreach uint j in 0..P-1 do
                     print(""+busyProducers[j]+"");
                 end
                 println("] pending items:" + pendingItems + " itemsOnBuffer " + itemsOnBuffer);
+                 */
             end
 
+            //  Receive a complete item from producer i and store it back in the buffer.
             receiveFromProducer: action FromProducer[i]:[item] ==>
+            var
+                uint bufferIndexBack // The index for the element after the last element in the buffer
             do
                 busyProducers[i] := 0;
                 pendingItems := pendingItems - 1;
+                
+                // Push item to back of buffer
+                bufferIndexBack := (bufferFrontLocation + itemsOnBuffer) % B;
+                buffer[bufferIndexBack] := item;
                 itemsOnBuffer := itemsOnBuffer + 1;
+                // Push item to back of buffer end
+
+
+
+                // Print statements that were useful for debugging
+                /*
                 print("Receiving item from producer: " + i + " [");
                 foreach uint j in 0..P-1 do
                     print(""+busyProducers[j]+"");
                 end
-                println("] pending items:" + pendingItems + " itemsOnBuffer " + itemsOnBuffer);
+                println("] pending items:" + pendingItems + " itemsOnBuffer " + itemsOnBuffer + " item: " + item);
+                */
+
+                /*
+                print("Buffer: [");
+                foreach uint j in 0..B-1 do
+                    print(""+buffer[j]+" ");
+                end
+                println("]");
+                */
             end
         end
-
-
     end
-
 end
-
-/*
-
-Source file: ./Buffer.cal false
-        Namespace: bndBuffer
-            Global Entity: Buffer
-                Actor Entity
-                    PortDecl: FromProducer
-                        NominalTypeExpr: float
-                        ExprVariable: P
-                            Variable: P
-                    PortDecl: FromConsumers
-                        NominalTypeExpr: uint
-                            Value Parameter: size
-                                ExprLiteral: 2
-                        ExprVariable: C
-                            Variable: C
-                    PortDecl: ToProducer
-                        NominalTypeExpr: uint
-                            Value Parameter: size
-                                ExprLiteral: 2
-                        ExprVariable: P
-                            Variable: P
-                    PortDecl: ToConsumers
-                        NominalTypeExpr: float
-                        ExprVariable: C
-                            Variable: C
-                    LocalVariableDecl: freeConsumers
-                        NominalTypeExpr: List
-                            se.lth.cs.tycho.ir.TypeParameter
-                                NominalTypeExpr: uint
-                                    Value Parameter: size
-                                        ExprLiteral: 1
-                            Value Parameter: size
-                                ExprVariable: C
-                                    Variable: C
-                    LocalVariableDecl: busyProducers
-                        NominalTypeExpr: List
-                            se.lth.cs.tycho.ir.TypeParameter
-                                NominalTypeExpr: uint
-                                    Value Parameter: size
-                                        ExprLiteral: 1
-                            Value Parameter: size
-                                ExprVariable: P
-                                    Variable: P
-                    se.lth.cs.tycho.ir.entity.cal.ActionGeneratorStmt
-                        se.lth.cs.tycho.ir.Generator
-                            NominalTypeExpr: uint
-                            GeneratorVarDecl: i
-                            ExprBinaryOp: Ops: 2 .. - 
-                                ExprLiteral: 0
-                                ExprVariable: C
-                                    Variable: C
-                                ExprLiteral: 1
-                        ActionEntity: getConsumerRequest
-                            Input pattern 
-                                Port: FromConsumers
-                                Match: 
-                                    InputVarDecl:
-                                    ExprCase
-                                        PatternBinding
-                                            PatternVarDecl: token
-                                        ExprLiteral: True
-                                ExprVariable: i
-                                    Variable: i
-                            se.lth.cs.tycho.ir.stmt.StmtAssignment
-                                se.lth.cs.tycho.ir.stmt.lvalue.LValueIndexer
-                                    se.lth.cs.tycho.ir.stmt.lvalue.LValueVariable
-                                        Variable: freeConsumers
-                                    ExprVariable: i
-                                        Variable: i
-                                ExprLiteral: 1
-                            se.lth.cs.tycho.ir.stmt.StmtCall
-                                ExprVariable: print
-                                    Variable: print
-                                ExprLiteral: "["
-                            se.lth.cs.tycho.ir.stmt.StmtForeach
-                                se.lth.cs.tycho.ir.Generator
-                                    NominalTypeExpr: uint
-                                    GeneratorVarDecl: j
-                                    ExprBinaryOp: Ops: 2 .. - 
-                                        ExprLiteral: 0
-                                        ExprVariable: C
-                                            Variable: C
-                                        ExprLiteral: 1
-                                se.lth.cs.tycho.ir.stmt.StmtCall
-                                    ExprVariable: print
-                                        Variable: print
-                                    ExprBinaryOp: Ops: 2 + + 
-                                        ExprLiteral: "Free Consumers: "
-                                        se.lth.cs.tycho.ir.expr.ExprIndexer
-                                            ExprVariable: freeConsumers
-                                                Variable: freeConsumers
-                                            ExprVariable: j
-                                                Variable: j
-                                        ExprLiteral: ""
-                            se.lth.cs.tycho.ir.stmt.StmtCall
-                                ExprVariable: println
-                                    Variable: println
-                                ExprLiteral: "]"
-                    se.lth.cs.tycho.ir.entity.cal.ActionGeneratorStmt
-                        se.lth.cs.tycho.ir.Generator
-                            NominalTypeExpr: uint
-                            GeneratorVarDecl: i
-                            ExprBinaryOp: Ops: 2 .. - 
-                                ExprLiteral: 0
-                                ExprVariable: P
-                                    Variable: P
-                                ExprLiteral: 1
-                        ActionEntity: sendProducerRequest
-                            Input pattern 
-                                Port: ToProducer
-                                Match: 
-                                    InputVarDecl:
-                                    ExprCase
-                                        se.lth.cs.tycho.ir.expr.pattern.PatternLiteral
-                                            ExprLiteral: 0
-                                        ExprLiteral: True
-                                ExprVariable: i
-                                    Variable: i
-
-
- */

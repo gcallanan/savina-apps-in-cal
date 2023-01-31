@@ -21,4 +21,4 @@ The buffer only transmits items to a consumer if there is a request for work fro
 ## Quick Run
 From within the 5p2_producerConsumer directory:
 1. mkdir build
-2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=off  --source-path . --target-path build bndBuffer.BndBufferNetwork && cc build/*.c -o add -lm && time ./add testOut
+2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=off  --source-path . --target-path build bndBuffer.BndBufferNetwork && cc build/*.c -o add -lm && time ./add
