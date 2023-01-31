@@ -5,7 +5,7 @@ import struct
 
 class big_4p8(benchmark.Benchmark):
     def __init__(self):
-        self.__DIRECTORY__ = "4p8-big"
+        self.__DIRECTORY__ = "4p8_big"
         self.__TOP_ACTOR_NAME__ = "big.BigNetwork"
         self.__BENCHMARK_NAME__ = "big"
 
