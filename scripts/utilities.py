@@ -153,7 +153,7 @@ def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperime
             first = False
             csvOutput.append(phaseTitles)
 
-        timingResults[1] = totalRuntimeTime_ms
+        timingResults[len(expParamsHeading)] = totalRuntimeTime_ms # This is the row one after the headings row
         csvOutput.append(timingResults)
 
     # Switch rows and columns as this is easier to read

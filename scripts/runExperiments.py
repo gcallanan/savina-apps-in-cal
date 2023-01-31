@@ -7,6 +7,7 @@ from typing import List
 from copy import deepcopy
 from big_4p8 import big_4p8
 from trapezoid_6p12 import trapezoid_6p12
+from producerConsumer_5p2 import producerConsumer_5p2
 
 """
 Generate a list of individual experiments from all combinations of the parameters in the input list
@@ -202,7 +203,7 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
 
 # Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
-    benchmarks = [trapezoid_6p12()]#[big_4p8()]
+    benchmarks = [producerConsumer_5p2()]#[big_4p8(), trapezoid_6p12()]
 
     index = 1
     start = time.time()
