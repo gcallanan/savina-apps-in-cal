@@ -1,12 +1,14 @@
 import time
+import string
 import utilities
 import subprocess
-from benchmark import Benchmark
+import argparse
 
 from typing import List
 from copy import deepcopy
 
 # Import all the benchmarks
+from benchmark import Benchmark
 from big_4p8 import big_4p8
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
@@ -28,7 +30,9 @@ Transforms to:
         {W=5, N=20000},
     ]
 """
-def generateExperimentParams(params: List[tuple]) -> List[dict]:
+def generateExperimentParams(
+        params: List[tuple], 
+    ) -> List[dict]:
     paramsCopy = deepcopy(params)
     output = []
 
@@ -58,7 +62,10 @@ parameters are determined based on the benchmark.getBuildParameters() function.
 The output for these results are stored in:
     <benchmark directory>/statistics/runtimes.csv
 """
-def runRuntimeExperiments(benchmark: Benchmark):
+def runRuntimeExperiments(
+        benchmark: Benchmark,
+        reduction_algorithm: string = "informative-tests", #<(first | random | shortest-path-to-exec | informative-tests | informative-tests-if-true | informative-tests-if-false)>)
+    ):
     experimentParams = generateExperimentParams(benchmark.getBuildParameters())
     testIndex = 0
     runtimeExperimentResults = []
@@ -76,7 +83,7 @@ def runRuntimeExperiments(benchmark: Benchmark):
 
         utilities.writeConfigFile(benchmark, experimentParam)
         utilities.buildActor(
-            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True
+            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm
         )
         runTime_s = utilities.runActor(
             benchmark.__DIRECTORY__,
@@ -99,6 +106,7 @@ def runRuntimeExperiments(benchmark: Benchmark):
         benchmark.__DIRECTORY__,
         runtimeExperimentResults,
         benchmark.getDependentVariableKey(),
+        reduction_algorithm,
     )
 
 
@@ -118,7 +126,11 @@ Results that are recorded for each experiment include:
                                 crashing. Set this flag to false to prevent running this test and 
                                 speed up testing by orders of magnitude.
 """
-def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = False):
+def runCompilationExperiments(
+        benchmark: Benchmark, 
+        collectPreReductionStats = False,
+        reduction_algorithm: string = "informative-tests",
+    ):
     experimentParams = generateExperimentParams(benchmark.getAMScalingParameters())
     testIndex = 0
     compilerExperimentResults = []
@@ -137,10 +149,10 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
 
         utilities.writeConfigFile(benchmark, experimentParam)
         compilerPhaseOutput, compileTime_s = utilities.buildActor(
-            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True
+            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm
         )
         compilerAmOutput, compileTime_s = utilities.buildActor(
-            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_post_reduction=True
+            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_post_reduction=True, reduction_algorithm=reduction_algorithm
         )
 
         compilerExperimentResults.append(
@@ -157,8 +169,8 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
     runningTime_s = round(time.time() - startTime_s, 2)
     print(f"{runningTime_s:07.2f} Done running compile tests for {benchmark.__TOP_ACTOR_NAME__}.")
 
-    utilities.writeCompilerPhaseFiles(benchmark.__DIRECTORY__, compilerExperimentResults)
-    utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAmReduction")
+    utilities.writeCompilerPhaseFiles(benchmark.__DIRECTORY__, compilerExperimentResults, reduction_algorithm)
+    utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAmReduction", reduction_algorithm)
 
     
 
@@ -178,7 +190,7 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
 
             try:
                 compilerAmOutput, compileTime_s = utilities.buildActor(
-                    benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_pre_reduction=True, timeout_s=timeout_s
+                    benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_pre_reduction=True, timeout_s=timeout_s,
                 )
             except subprocess.TimeoutExpired:
                 print("Timeout:", timeout_s, "s")
@@ -190,24 +202,40 @@ def runCompilationExperiments(benchmark: Benchmark, collectPreReductionStats = F
 
             compilerExperimentResults.append(
                 utilities.CompileTimeExperimentResults(
-                    experimentParam, compileTime_s, "", compilerAmOutput, True
+                    experimentParam, compileTime_s, "", compilerAmOutput, True, reduction_algorithm
                 )
             )
             testIndex += 1
 
         utilities.writeConfigFile(
-            benchmark, experimentParams[0]
+            benchmark, experimentParams[0],
         )  # reset to prevent git commit issues
 
         runningTime_s = round(time.time() - startTime_s, 2)
         print(f"{runningTime_s:07.2f} Done running pre-reduction AM statistics collection tests for {benchmark.__TOP_ACTOR_NAME__}.")
 
-        utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAndPreAmReduction")
+        utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAndPreAmReduction", reduction_algorithm)
 
 # Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
+    # 1. List of different benchmarks to run
     #benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
-    benchmarks = [threadRing_4p2()]
+    benchmarks = [producerConsumer_5p2()]
+
+    # 2. Parse all arguments
+    parser = argparse.ArgumentParser(description='Run Savina Benchmark suite for CAL.')
+    parser.add_argument('--pre-stats', action='store_true', help="Collect AM statistics pre reduction (Greatly increases program runtime.)")
+    parser.add_argument('--reduction-algorithm',
+            default='informative-tests',
+            const='informative-tests',
+            nargs='?',
+            choices=['first', 'random', 'shortest-path-to-exec', 'informative-tests', 'informative-tests-if-true', 'informative-tests-if-false'],
+            help='Choose which reduction algorithm to use to reduce the Actor Machines (default: %(default)s)'
+        )
+    args = parser.parse_args()
+
+    # 3. Run benchmarks
+    print(f"Running benchmark test. Using reduction algorithm: {args.reduction_algorithm}. Pre-reduction stats printing: {args.pre_stats}")
 
     index = 1
     start = time.time()
@@ -217,9 +245,9 @@ if __name__ == "__main__":
             f"{runningTime_s:07.2f} Running {benchmark.__BENCHMARK_NAME__}. This is benchmark {index} of {len(benchmarks)}"
         )
         print("Running runtime experiments:")
-        runRuntimeExperiments(benchmark)
+        runRuntimeExperiments(benchmark, reduction_algorithm=args.reduction_algorithm)
         print("Running compiler experiments:")
-        runCompilationExperiments(benchmark, collectPreReductionStats=True)
+        runCompilationExperiments(benchmark, collectPreReductionStats=args.pre_stats, reduction_algorithm=args.reduction_algorithm)
 
         index += 1
 

@@ -54,7 +54,7 @@ namespace bndBuffer:
             
             // If there is at least one item on the buffer and Consumer i requests an item, then
             // pop that item from the buffer and transmit it to the consumer.
-            requestFromAndRespondToConsumer: action FromConsumer[i]:[token] ==> ToConsumer[i]:[poppedItem]
+            requestFromConsumer: action FromConsumer[i]:[token] ==> ToConsumer[i]:[poppedItem]
             guard
                 itemsOnBuffer > 0
             var
@@ -78,7 +78,7 @@ namespace bndBuffer:
         foreach uint i in 0..P-1 generate
             // Send a request to Producer i for a new item, assuming producer i is not already busy
             // and there is space on the buffer
-            sendProducerRequest: action ==> ToProducer[i]:[1]
+            requestToProducer: action ==> ToProducer[i]:[1]
             guard
                 busyProducers[i] = 0,
                 // Only <, not <= as we need at least 1 empty space to store the new request
@@ -98,7 +98,7 @@ namespace bndBuffer:
             end
 
             //  Receive a complete item from producer i and store it back in the buffer.
-            receiveFromProducer: action FromProducer[i]:[item] ==>
+            itemFromProducer: action FromProducer[i]:[item] ==>
             var
                 uint bufferIndexBack // The index for the element after the last element in the buffer
             do

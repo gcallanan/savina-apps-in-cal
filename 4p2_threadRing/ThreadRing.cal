@@ -8,7 +8,7 @@ namespace threadRing:
     //
     // Parameters:
     //     firstActor - One actor in the ring needs to inject the token into
-    //                  the ring for the first time if this parameter is set to
+    //                  the ring for the first time. If this parameter is set to
     //                  one, then this actor will be the one that creates that
     //                  first token.
     //

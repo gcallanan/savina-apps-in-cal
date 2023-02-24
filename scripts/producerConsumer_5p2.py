@@ -5,14 +5,15 @@ class producerConsumer_5p2(benchmark.Benchmark):
     def __init__(self):
         self.__DIRECTORY__ = "5p2_producerConsumer"
         self.__TOP_ACTOR_NAME__ = "bndBuffer.BndBufferNetwork"
-        self.__BENCHMARK_NAME__ = "producerConusmer"
+        self.__BENCHMARK_NAME__ = "producerConsumer"
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [
             #("P", [1, 2]), # Best for testing
             #("C", [1, 2]),
-            ("P", [1, 2, 3, 4]), # Best for unreduced state machine measurements
-            ("C", [1, 2, 3, 4]),
+            #("P", [16,18,20,22,24,26]), # Best for testing
+            ("P", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]), # Best for unreduced state machine measurements
+            ("C", [1]),
             #("P", [1, 2, 3, 4, 5, 6, 7]), # Best for runtimes
             #("C", [1, 2, 3, 4 ,5, 6, 7]),
         ]

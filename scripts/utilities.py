@@ -38,10 +38,12 @@ def buildActor(
     actorName: string,
     directory: string,
     phase_timers: bool = False,
+    reduction_algorithm: string = "informative-tests", #<(first | random | shortest-path-to-exec | informative-tests | informative-tests-if-true | informative-tests-if-false)>
     am_statistics_post_reduction: bool = False,
     am_statistics_pre_reduction: bool = False, # Can take a very long time or crash when compiling
     timeout_s = 100000,
 ) -> None:
+    
     phase_timers_flag = ""
     if phase_timers:
         phase_timers_flag = "--set phase-timer=on"
@@ -63,7 +65,9 @@ def buildActor(
         )
 
     # 2 Build and compile, capture the output
-    command = f"tychoc --set experimental-network-elaboration=on --set reporting-level=error {am_statistics_post_reduction_flag} {am_statistics_pre_reduction_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
+    # --set reduction-algorithm=random
+    # <(first | random | shortest-path-to-exec | informative-tests | informative-tests-if-true | informative-tests-if-false)>
+    command = f"tychoc --set experimental-network-elaboration=on  --set reduction-algorithm={reduction_algorithm} --set reporting-level=error {am_statistics_post_reduction_flag} {am_statistics_pre_reduction_flag} {phase_timers_flag} --source-path {directory} --target-path {directory}/build {actorName}"
     start = time.time()
     procRet = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True, timeout=timeout_s)
     err = procRet.stderr
@@ -109,7 +113,7 @@ def writeConfigFile(exper: benchmark.Benchmark, experimentParam: List[dict]):
     f.write(contents)
     f.close()
 
-def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperimentResults]) -> List[List]:
+def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperimentResults], reduction_algorithm) -> List[List]:
     command = f"mkdir -p {directory}/statistics"
     retCode = os.system(command)
     if retCode != 0:
@@ -159,7 +163,8 @@ def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperime
     # Switch rows and columns as this is easier to read
     csvOutput = list(map(list, zip(*csvOutput)))
 
-    with open(f"{directory}/statistics/compilePhaseTimes.csv", "w", newline="") as f:
+    append=reduction_algorithm.replace("-","").upper()
+    with open(f"{directory}/statistics/compilePhaseTimes_{append}.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(csvOutput)
 
@@ -167,7 +172,8 @@ def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperime
 def writeAmStatisticsResults(
     directory: string,
     results: List[CompileTimeExperimentResults],
-    fileNameAppend: str = ""
+    fileNameAppend: str,
+    reduction_algorithm: str
 ) -> List[List]:
 
     command = f"mkdir -p {directory}/statistics"
@@ -202,14 +208,15 @@ def writeAmStatisticsResults(
                 for x in output.experimentParameters.keys()
             ]
             csvOutput.append(expParamsValues + line.split(","))
-
-    with open(f"{directory}/statistics/amSizeStatistics_{fileNameAppend}.csv", "w", newline="") as f:
+    
+    append=reduction_algorithm.replace("-","").upper()
+    with open(f"{directory}/statistics/amSizeStatistics_{fileNameAppend}_{append}.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(csvOutput)
 
 
 def writeRuntimeFiles(
-    directory: string, results: List[RuntimeExperimentResults], depVarKey: string
+    directory: string, results: List[RuntimeExperimentResults], depVarKey: string, reduction_algorithm: string
 ):
     command = f"mkdir -p {directory}/statistics"
     retCode = os.system(command)
@@ -243,6 +250,7 @@ def writeRuntimeFiles(
         depResults = [formatedResults[key][x] for x in depVarsValues]
         csvOutput.append(keyVals + depResults)
 
-    with open(f"{directory}/statistics/runtimes.csv", "w", newline="") as f:
+    append=reduction_algorithm.replace("-","").upper()
+    with open(f"{directory}/statistics/runtimes_{append}.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(csvOutput)
