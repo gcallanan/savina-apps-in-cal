@@ -19,7 +19,7 @@ namespace bndBuffer:
     //                     from the consumers.
     //     ToConsumers - Port array connected to each consumer. Transmits the requested items to the
     //                   consumers.
-    actor Buffer() 
+    actor Buffer(uint B, uint P, uint C) 
         float FromProducer[P], uint(size=2) FromConsumer[C]
         ==>
         uint(size=2) ToProducer[P],  float ToConsumer[C]
@@ -103,10 +103,10 @@ namespace bndBuffer:
                 uint bufferIndexBack // The index for the element after the last element in the buffer
             do
                 busyProducers[i] := 0;
-                pendingItems := pendingItems - 1;
+                pendingItems := (pendingItems - 1);
                 
                 // Push item to back of buffer
-                bufferIndexBack := (bufferFrontLocation + itemsOnBuffer) % B;
+                bufferIndexBack := ((bufferFrontLocation + (itemsOnBuffer)) % B);
                 buffer[bufferIndexBack] := item;
                 itemsOnBuffer := itemsOnBuffer + 1;
                 // Push item to back of buffer end

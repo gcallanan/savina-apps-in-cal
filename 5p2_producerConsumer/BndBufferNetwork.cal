@@ -7,7 +7,7 @@ namespace bndBuffer:
     entities
         producers = [Producer(numItemsPerProducer=numItemsPerProducer, prodCost=prodCost): for i in 0..P-1];
         consumers = [Consumer(consCost=consCost): for i in 0..C-1];
-        buffer = Buffer();
+        buffer = Buffer(B=B, P=P, C=C);
     structure
         foreach uint i in 0..P-1 do
             producers[i].Out --> buffer.FromProducer[i];

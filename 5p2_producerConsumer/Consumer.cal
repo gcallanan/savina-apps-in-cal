@@ -17,15 +17,15 @@ namespace bndBuffer:
     actor Consumer (int consCost) float In ==> uint(size=2) Out:
 
         // A persistent value stored across the generation of items.
-        float consItem := 0;
+        float consItem := 0.0;
 
         // Procedure to simulate the consumtion of an item. This is based on the processItem(...)
         // function defined in bndbuffer/ProdConsBoundedBufferConfig.java of the Savina
         // benchmark suit. As far as I can tell its mostly just meaningless computation
         // designed to consume CPU cycels.
-        procedure processItem(float dataItem)
+        procedure processRxItem(float dataItem)
         var 
-            float tempOut := 0
+            float tempOut := 0.0
         begin
             tempOut := dataItem + consItem;
 
@@ -50,7 +50,7 @@ namespace bndBuffer:
         // Process a received work item when one is available on the In port.
         getItems: action In:[dataItem] ==>
         do
-            processItem(dataItem);
+            processRxItem(dataItem);
             // println("Consumer doing work");
         end
 
@@ -62,5 +62,4 @@ namespace bndBuffer:
         end
 
     end
-
 end
