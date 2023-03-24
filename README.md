@@ -1,10 +1,10 @@
 # Savina Apps in CAL
 
-Run Savaina benchmarks using Tycho and the CAL actor language.
+Run Savina benchmarks using Tycho and the CAL actor language.
 
-To run all the experiemnts execute `python3 scripts/runExperiments.py` from the terminal. Note this can take hours to run, so be ready. 
+To run all the experiments execute `python3 scripts/runExperiments.py` from the terminal. Note this can take hours to run, so be ready. 
 
-All apps here taken from the Savina Actor Benchmark paper.
+All apps here taken from the Savina Actor Benchmark paper:
 
 @inproceedings{10.1145/2687357.2687368,
     author = {Imam, Shams M. and Sarkar, Vivek},
@@ -15,7 +15,6 @@ All apps here taken from the Savina Actor Benchmark paper.
     address = {New York, NY, USA},
     url = {https://doi.org/10.1145/2687357.2687368},
     doi = {10.1145/2687357.2687368},
-    abstract = {This paper introduces the Savina benchmark suite for actor-oriented programs. Our goal is to provide a standard benchmark suite that enables researchers and application developers to compare different actor implementations and identify those that deliver the best performance for a given use-case. The benchmarks in Savina are diverse, realistic, and represent compute (rather than I/O) intensive applications. They range from popular micro-benchmarks to classical concurrency problems to applications that demonstrate various styles of parallelism. Implementations of the benchmarks on various actor libraries are made publicly available through an open source release. This will allow other developers and researchers to compare the performance of their actor libraries on these common set of benchmarks.},
     booktitle = {Proceedings of the 4th International Workshop on Programming Based on Actors Agents & Decentralized Control},
     pages = {67–80},
     numpages = {14},
@@ -27,7 +26,7 @@ All apps here taken from the Savina Actor Benchmark paper.
 The github for the Savina framework is available [here](https://github.com/shamsimam/savina).
 
 # Requirements
-1. [streamblocks-tycho](https://git.cs.lth.se/dataflow/streamblocks-tycho) on the LU gitlab servers has been installed and you are using branch "EntityRenamingBug" branch. We use the the tychoc binary in the streamblocks-tycho repo, not the streamblocks binary in the [streamblocks-platforms](https://git.cs.lth.se/dataflow/streamblocks-tycho/-/tree/EntityRenamingBug) repo to build.
+1. The streamblocks-tÿcho repo is required. A copy is available on [gitlab](https://git.cs.lth.se/dataflow/streamblocks-tycho/-/tree/da843c022de456b31dcf97cbff7685d3442a0517) the Lund University servers (this may or may not be public) or on the the open source Streamblocks github repo. The branch tested in the github repo with this benchmark suite can be found [here](https://github.com/streamblocks/streamblocks-tycho/tree/29c39f1bfb1264dcdad09349a733bd7aa260fed0). We use the the tychoc binary in the streamblocks-tycho repo, not the streamblocks binary in the [streamblocks-platforms](https://git.cs.lth.se/dataflow/streamblocks-tycho/-/tree/EntityRenamingBug) repo to build these benchmarks.
 
 # Bugs
 1. consumers = [Consumer(consCost=consCost): for i in 0..C-1]; Actors require a dummy variable to be inisialised in this list.
