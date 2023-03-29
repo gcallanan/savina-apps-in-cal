@@ -41,6 +41,7 @@ def buildActor(
     reduction_algorithm: string = "informative-tests", #<(first | random | shortest-path-to-exec | informative-tests | informative-tests-if-true | informative-tests-if-false)>
     am_statistics_post_reduction: bool = False,
     am_statistics_pre_reduction: bool = False, # Can take a very long time or crash when compiling
+    compile_C_to_binary: bool = True, # Compile the generated C files to a binary
     timeout_s = 100000,
 ) -> None:
     
@@ -79,12 +80,13 @@ def buildActor(
     compileTime_s = time.time() - start
 
     # 3. Generate binary from C
-    command = f"cc  {directory}/build/*.c -o {directory}/build/calBinary -lm"
-    exitCode = os.system(command)
-    if exitCode != 0:
-        raise Exception(
-            f"'{command}' returned non-zero exit code when compiling C for {actorName}."
-        )
+    if compile_C_to_binary:
+        command = f"cc  {directory}/build/*.c -o {directory}/build/calBinary -lm"
+        exitCode = os.system(command)
+        if exitCode != 0:
+            raise Exception(
+                f"'{command}' returned non-zero exit code when compiling C for {actorName}."
+            )
 
     return out, compileTime_s
 
@@ -113,7 +115,7 @@ def writeConfigFile(exper: benchmark.Benchmark, experimentParam: List[dict]):
     f.write(contents)
     f.close()
 
-def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperimentResults], reduction_algorithm) -> List[List]:
+def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperimentResults], reduction_algorithm, fileNameAppend: str,) -> List[List]:
     command = f"mkdir -p {directory}/statistics"
     retCode = os.system(command)
     if retCode != 0:
@@ -164,7 +166,7 @@ def writeCompilerPhaseFiles(directory: string, results: List[CompileTimeExperime
     csvOutput = list(map(list, zip(*csvOutput)))
 
     append=reduction_algorithm.replace("-","").upper()
-    with open(f"{directory}/statistics/compilePhaseTimes_{append}.csv", "w", newline="") as f:
+    with open(f"{directory}/statistics/compilePhaseTimes_{fileNameAppend}_{append}.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(csvOutput)
 

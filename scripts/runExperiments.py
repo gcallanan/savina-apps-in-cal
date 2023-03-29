@@ -130,47 +130,51 @@ def runCompilationExperiments(
         benchmark: Benchmark, 
         collectPreReductionStats = False,
         reduction_algorithm: string = "informative-tests",
+        firstExperimentIndex: int = 0, # The first index in the experiments to run
+        lastExperimentIndex: int = 0, # The last index in the experiments to run
     ):
-    experimentParams = generateExperimentParams(benchmark.getAMScalingParameters())
-    testIndex = 0
-    compilerExperimentResults = []
-    numTests = len(experimentParams)
+    
+    for i in range(firstExperimentIndex,lastExperimentIndex + 1):
+        print("Test: ",i)
+        experimentParams = generateExperimentParams(benchmark.getAMScalingParameters())
+        testIndex = 0
+        compilerExperimentResults = []
+        numTests = len(experimentParams)
 
-    # 1. Standard compilation experiments collecting phase timing and 
-
-    startTime_s = time.time()
-    utilities.makeDataDir(benchmark)
-    for experimentParam in experimentParams:
-        runningTime_s = round(time.time() - startTime_s, 2)
-        print(
-            f"{runningTime_s:07.2f} Running compile test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
-            experimentParam,
-        )
-
-        utilities.writeConfigFile(benchmark, experimentParam)
-        compilerPhaseOutput, compileTime_s = utilities.buildActor(
-            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm
-        )
-        compilerAmOutput, compileTime_s = utilities.buildActor(
-            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_post_reduction=True, reduction_algorithm=reduction_algorithm
-        )
-
-        compilerExperimentResults.append(
-            utilities.CompileTimeExperimentResults(
-                experimentParam, compileTime_s, compilerPhaseOutput, compilerAmOutput, False
+        # 1. Standard compilation experiments collecting phase timing and 
+        startTime_s = time.time()
+        utilities.makeDataDir(benchmark)
+        for experimentParam in experimentParams:
+            runningTime_s = round(time.time() - startTime_s, 2)
+            print(
+                f"{runningTime_s:07.2f} Running compile test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
+                experimentParam,
             )
-        )
-        testIndex += 1
 
-    utilities.writeConfigFile(
-        benchmark, experimentParams[0]
-    )  # reset to prevent git commit issues
+            utilities.writeConfigFile(benchmark, experimentParam)
+            compilerPhaseOutput, compileTime_s = utilities.buildActor(
+                benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm
+            )
+            compilerAmOutput, compileTime_s = utilities.buildActor(
+                benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_post_reduction=True, reduction_algorithm=reduction_algorithm
+            )
 
-    runningTime_s = round(time.time() - startTime_s, 2)
-    print(f"{runningTime_s:07.2f} Done running compile tests for {benchmark.__TOP_ACTOR_NAME__}.")
+            compilerExperimentResults.append(
+                utilities.CompileTimeExperimentResults(
+                    experimentParam, compileTime_s, compilerPhaseOutput, compilerAmOutput, False
+                )
+            )
+            testIndex += 1
 
-    utilities.writeCompilerPhaseFiles(benchmark.__DIRECTORY__, compilerExperimentResults, reduction_algorithm)
-    utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAmReduction", reduction_algorithm)
+        utilities.writeConfigFile(
+            benchmark, experimentParams[0]
+        )  # reset to prevent git commit issues
+
+        runningTime_s = round(time.time() - startTime_s, 2)
+        print(f"{runningTime_s:07.2f} Done running compile tests for {benchmark.__TOP_ACTOR_NAME__}.")
+
+        utilities.writeCompilerPhaseFiles(benchmark.__DIRECTORY__, compilerExperimentResults, reduction_algorithm,f"{i}")
+        utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, f"postAmReduction{i}", reduction_algorithm)
 
     
 
@@ -214,7 +218,7 @@ def runCompilationExperiments(
         runningTime_s = round(time.time() - startTime_s, 2)
         print(f"{runningTime_s:07.2f} Done running pre-reduction AM statistics collection tests for {benchmark.__TOP_ACTOR_NAME__}.")
 
-        utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, "postAndPreAmReduction", reduction_algorithm)
+        utilities.writeAmStatisticsResults(benchmark.__DIRECTORY__, compilerExperimentResults, f"postAndPreAmReduction", reduction_algorithm)
 
 # Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
