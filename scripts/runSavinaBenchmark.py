@@ -1,3 +1,10 @@
+"""
+File that runs all the savina benchmarks with all the parameters given in the implementation of the
+benchmark.Benchmark class.
+
+Both compile time and runtime tests are run
+"""
+
 import time
 import string
 import utilities
@@ -60,7 +67,7 @@ Run all experiments where the runtime of the actor network is recorded. These ex
 parameters are determined based on the benchmark.getBuildParameters() function.
 
 The output for these results are stored in:
-    <benchmark directory>/statistics/runtimes.csv
+    <benchmark directory>/statistics/runtimes_*.csv
 """
 def runRuntimeExperiments(
         benchmark: Benchmark,
@@ -125,6 +132,10 @@ Results that are recorded for each experiment include:
 @param collectPreReductionStats Experiment 3 above can take a very long time to run with a risk of
                                 crashing. Set this flag to false to prevent running this test and 
                                 speed up testing by orders of magnitude.
+
+The output for these results are stored in:
+    <benchmark directory>/statistics/amSizeStatistics_*.csv
+    <benchmark directory>/statistics/compilePhaseTimes_*.csv
 """
 def runCompilationExperiments(
         benchmark: Benchmark, 
@@ -223,8 +234,8 @@ def runCompilationExperiments(
 # Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
     # 1. List of different benchmarks to run
-    #benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
-    benchmarks = [producerConsumer_5p2()]
+    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
+    #benchmarks = [producerConsumer_5p2()]
 
     # 2. Parse all arguments
     parser = argparse.ArgumentParser(description='Run Savina Benchmark suite for CAL.')
