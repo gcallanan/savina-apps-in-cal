@@ -13,4 +13,4 @@ A Savina implementation of this benchmark can be found in the [BigHabaneroActorB
 ## Quick Run
 From within the 4P8-big directory:
 1. mkdir build
-2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --source-path . --target-path build big.BigNetwork && cc build/*.c -o add && time ./add testOut
+2. time tychoc --set experimental-network-elaboration=on --source-path . --target-path build big.BigNetwork && cc build/*.c -o add && time ./add testOut

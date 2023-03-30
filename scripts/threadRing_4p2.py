@@ -44,3 +44,6 @@ end
 
     def getDependentVariableKey(self) -> str:
         return "N"
+    
+    def getScalingActorName(self) -> str:
+        return "ThreadRingActor"

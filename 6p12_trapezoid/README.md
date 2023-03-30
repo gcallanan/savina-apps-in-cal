@@ -16,4 +16,4 @@ A Savina implementation of this benchmark can be found in the [TrapezoidalHabane
 ## Quick Run
 From within the 6p12-trapezoid directory:
 1. mkdir build
-2. time tychoc  --set pretty-print-post-template-sub=off --set pretty-print-test=off  --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=off  --source-path . --target-path build trapezoid.TrapezoidNetwork && cc build/*.c -o add -lm && time ./add testOut
+2. time tychoc --set experimental-network-elaboration=on --set phase-timer=off --set print-am-statistics-pre-reduction=off  --source-path . --target-path build trapezoid.TrapezoidNetwork && cc build/*.c -o add -lm && time ./add testOut

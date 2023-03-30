@@ -36,6 +36,10 @@ class Benchmark(ABC):
     def getDependentVariableKey(self) -> str:
         pass
 
+    @abstractmethod
+    def getScalingActorName(self) -> str:
+        pass
+
     # @property
     # @abstractmethod
     # def __DIRECTORY__(self):

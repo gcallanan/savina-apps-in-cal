@@ -10,7 +10,7 @@ class producerConsumer_5p2(benchmark.Benchmark):
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [
             #("P", [1, 2]), # Best for testing
-            #("C", [1, 2]),
+            #("C", [1]),
             #("P", [16,18,20,22,24,26]), # Best for testing
             ("P", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]), # Best for unreduced state machine measurements
             ("C", [1]),
@@ -33,9 +33,9 @@ class producerConsumer_5p2(benchmark.Benchmark):
     uint B = {B}; // Buffer size
     uint P = {P}; // Number of producers
     uint C = {C}; // Number of consumers
-    uint numItemsPerProducer = 1000;
-    uint prodCost = 25; // Cost to perform action by producer
-    uint consCost = 25; // Cost to perform action by consumer
+    uint numItemsPerProducer = 1000000;
+    uint prodCost = 1; // Cost to perform action by producer
+    uint consCost = 1; // Cost to perform action by consumer
 end
 """
         return configFileContents
@@ -53,3 +53,7 @@ end
 
     def getDependentVariableKey(self) -> str:
         return "P"
+    
+    def getScalingActorName(self) -> str:
+        return "Buffer"
+    

@@ -37,7 +37,7 @@ namespace bndBuffer:
 
             if prodCost > 0 then
                 foreach int i in 0..prodCost-1 do
-                    foreach int j in 0..100 do
+                    foreach int j in 0..1 /*100*/ do
                         tempOut := tempOut + exp(abs(randDouble()) + 0.01);
                     end
                 end

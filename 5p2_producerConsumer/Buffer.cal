@@ -19,7 +19,7 @@ namespace bndBuffer:
     //                     from the consumers.
     //     ToConsumers - Port array connected to each consumer. Transmits the requested items to the
     //                   consumers.
-    actor Buffer(uint B, uint P, uint C) 
+    actor Buffer(uint B, uint P, uint C, uint numItemsPerProducer)
         float FromProducer[P], uint(size=2) FromConsumer[C]
         ==>
         uint(size=2) ToProducer[P],  float ToConsumer[C]
@@ -48,6 +48,14 @@ namespace bndBuffer:
         // always hold.
         int pendingItems := 0;
 
+        // Number of tokens received from consumers indicating that they have completed processing
+        uint totalItemsFromConsumers := 0;
+
+        // Sum all values of items from producers and consumers and then print them out
+        // The goal is to prevent the C compiler from optimising away too much real stuff
+        float sumProducers := 0;
+        float sumConsumers := 0;
+
         // For every consumer, we need to generate an action that transmits an item to the consumer
         // once i request for the item has been received.
         foreach uint i in 0..C-1 generate
@@ -67,6 +75,9 @@ namespace bndBuffer:
                 itemsOnBuffer := itemsOnBuffer - 1;
                 // End: pop from front of buffer
                 
+                sumConsumers := sumConsumers + token;
+                totalItemsFromConsumers := totalItemsFromConsumers + 1;
+
                 // Useful debugging print.
                 // println("Sending item to consumer " + i + " bufferSize: " + itemsOnBuffer + " Item: " + poppedItem + " bufferFrontLocal: " + bufferFrontLocation);
             end
@@ -111,7 +122,7 @@ namespace bndBuffer:
                 itemsOnBuffer := itemsOnBuffer + 1;
                 // Push item to back of buffer end
 
-
+                sumProducers := sumProducers + item;
 
                 // Print statements that were useful for debugging
                 /*
@@ -131,5 +142,18 @@ namespace bndBuffer:
                 */
             end
         end
+
+        // Print all the values out when the number of done tokens received from the consumers
+        // equals the total number of items produced from the producers. (Put simply, print when
+        // everything is complete.)
+        /* printValues: action ==>
+        guard
+            numItemsPerProducer = totalItemsFromConsumers
+        do
+            totalItemsFromConsumers := totalItemsFromConsumers + 1;
+            println("Producers items sum: " + sumProducers);
+            println("Consumer tokens sum: " + sumConsumers);
+        end */
+
     end
 end

@@ -5,6 +5,7 @@ import subprocess
 import csv
 import benchmark as benchmark
 
+from copy import deepcopy
 from typing import List
 from dataclasses import dataclass
 
@@ -33,6 +34,45 @@ def makeDataDir(exper: benchmark.Benchmark):
             f"Could not create directory '{directory}/data'. Return code equal to {retCode}, expected 0"
         )
 
+"""
+Generate a list of individual experiments from all combinations of the parameters in the input list
+Eg: 
+    [
+        ("W", [1, 5])
+        ("N", [10000, 20000])
+    ]
+
+Transforms to:
+    [
+        {W=1, N=10000},
+        {W=1, N=10000},
+        {W=5, N=20000},
+        {W=5, N=20000},
+    ]
+"""
+def generateExperimentParams(
+        params: List[tuple], 
+    ) -> List[dict]:
+    paramsCopy = deepcopy(params)
+    output = []
+
+    while len(paramsCopy) != 0:
+        row = paramsCopy.pop()
+        key = row[0]
+        values = row[1]
+
+        newOutput = []
+        for x in values:
+            if len(output) == 0:
+                newOutput.append({key: x})
+            else:
+                for item in output:
+                    newItem = dict(item)
+                    newItem[key] = x
+                    newOutput.append(newItem)
+        output = newOutput
+
+    return output
 
 def buildActor(
     actorName: string,
@@ -42,7 +82,8 @@ def buildActor(
     am_statistics_post_reduction: bool = False,
     am_statistics_pre_reduction: bool = False, # Can take a very long time or crash when compiling
     compile_C_to_binary: bool = True, # Compile the generated C files to a binary
-    timeout_s = 100000,
+    extra_c_compiler_flags: string = "", # Extra flags to add when compiling C to binary.
+    timeout_s: int = 100000,
 ) -> None:
     
     phase_timers_flag = ""
@@ -80,15 +121,28 @@ def buildActor(
     compileTime_s = time.time() - start
 
     # 3. Generate binary from C
+    binarySize = 0
     if compile_C_to_binary:
-        command = f"cc  {directory}/build/*.c -o {directory}/build/calBinary -lm"
+        # 3.1 Compile the binary
+        command = f"cc  {directory}/build/*.c {extra_c_compiler_flags} -o {directory}/build/calBinary -lm"
         exitCode = os.system(command)
         if exitCode != 0:
             raise Exception(
                 f"'{command}' returned non-zero exit code when compiling C for {actorName}."
             )
+        
+        # 3.2 Get size of generated binary
+        command = f"stat --printf=\"%s\" {directory}/build/calBinary"
+        procRet = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True, timeout=timeout_s)
+        err = procRet.stderr
+        binarySize_bytes = int(procRet.stdout)
+        if (err != ''): 
+            raise RuntimeError(
+                f"Return code equal to {err}, expected 0 when compiling {actorName}"
+            )
 
-    return out, compileTime_s
+
+    return out, compileTime_s, binarySize_bytes
 
 
 def runActor(
@@ -97,7 +151,7 @@ def runActor(
 
     inputArgumentFileNames = " ".join(inputFileList)
     outputArgumentsFileName = " ".join(outputFileList)
-    command = f"{directory}/build/calBinary {inputArgumentFileNames} {outputArgumentsFileName}"
+    command = f"{directory}/build/calBinary {inputArgumentFileNames} {outputArgumentsFileName} >/dev/null"
 
     start = time.time()
     exitCode = os.system(command)

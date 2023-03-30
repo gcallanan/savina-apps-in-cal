@@ -59,3 +59,6 @@ end
 
     def getDependentVariableKey(self) -> str:
         return "P"
+    
+    def getScalingActorName(self) -> str:
+        return "Messenger"

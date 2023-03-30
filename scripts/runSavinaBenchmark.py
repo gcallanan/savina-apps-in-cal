@@ -12,7 +12,6 @@ import subprocess
 import argparse
 
 from typing import List
-from copy import deepcopy
 
 # Import all the benchmarks
 from benchmark import Benchmark
@@ -20,47 +19,6 @@ from big_4p8 import big_4p8
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
-
-"""
-Generate a list of individual experiments from all combinations of the parameters in the input list
-Eg: 
-    [
-        ("W", [1, 5])
-        ("N", [10000, 20000])
-    ]
-
-Transforms to:
-    [
-        {W=1, N=10000},
-        {W=1, N=10000},
-        {W=5, N=20000},
-        {W=5, N=20000},
-    ]
-"""
-def generateExperimentParams(
-        params: List[tuple], 
-    ) -> List[dict]:
-    paramsCopy = deepcopy(params)
-    output = []
-
-    while len(paramsCopy) != 0:
-        row = paramsCopy.pop()
-        key = row[0]
-        values = row[1]
-
-        newOutput = []
-        for x in values:
-            if len(output) == 0:
-                newOutput.append({key: x})
-            else:
-                for item in output:
-                    newItem = dict(item)
-                    newItem[key] = x
-                    newOutput.append(newItem)
-        output = newOutput
-
-    return output
-
 
 """
 Run all experiments where the runtime of the actor network is recorded. These experiments
@@ -73,7 +31,7 @@ def runRuntimeExperiments(
         benchmark: Benchmark,
         reduction_algorithm: string = "informative-tests", #<(first | random | shortest-path-to-exec | informative-tests | informative-tests-if-true | informative-tests-if-false)>)
     ):
-    experimentParams = generateExperimentParams(benchmark.getBuildParameters())
+    experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
     testIndex = 0
     runtimeExperimentResults = []
     numTests = len(experimentParams)
@@ -147,7 +105,7 @@ def runCompilationExperiments(
     
     for i in range(firstExperimentIndex,lastExperimentIndex + 1):
         print("Test: ",i)
-        experimentParams = generateExperimentParams(benchmark.getAMScalingParameters())
+        experimentParams = utilities.generateExperimentParams(benchmark.getAMScalingParameters())
         testIndex = 0
         compilerExperimentResults = []
         numTests = len(experimentParams)
