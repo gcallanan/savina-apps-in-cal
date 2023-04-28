@@ -20,6 +20,7 @@ We expect that the following is installed:
 import time
 import utilities
 import os
+import re
 
 # Import all the benchmarks
 from benchmark import Benchmark
@@ -39,6 +40,18 @@ startTime_s = time.time()
 numTests = len(experimentParams)
 directory = benchmark.__DIRECTORY__
 directoryTime = time.strftime('%Y%m%d_%H%M')
+#directoryTime = "20230427_1156"
+
+# 2.1 Create a common log file where everything is written to
+resourceUsageLogFile = f"{benchmark.__DIRECTORY__}/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_resource_usage.txt"
+file = open(resourceUsageLogFile, "a") #x
+file.write(f"File reporting FPGA resource usage for {benchmark.__BENCHMARK_NAME__} benchmark.\n")
+file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+file.write(f"|                              |                        Resource Use Percentage                          |\n")
+file.write(f"| Experiment Name + Parameters | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPS  |\n")
+file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+file.close()
+
 
 # 3. Run all the experiments
 for experimentParam in experimentParams:
@@ -53,7 +66,8 @@ for experimentParam in experimentParams:
     utilities.writeConfigFile(benchmark, experimentParam)
 
     # 3.1 Create the correct directory
-    directory = benchmark.__DIRECTORY__ + f"/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}" + ''.join([f"_{k}{v}" for k,v in experimentParam.items()])
+    paramString = ''.join([f"_{k}{v}" for k,v in experimentParam.items()])
+    directory = benchmark.__DIRECTORY__ + f"/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}" + paramString
     command = f"mkdir -p {directory}"
     exitCode = os.system(command)
     if exitCode != 0:
@@ -80,13 +94,68 @@ for experimentParam in experimentParams:
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
+    # 4. Write all results to file
+    vivadoLogFilePath = directory + "/build/_x/link/vivado/vpl/prj/prj.runs/impl_1/full_util_placed.rpt"
+    print(vivadoLogFilePath)
+
+    try:
+        with open(vivadoLogFilePath) as file:
+            lines = file.readlines()
+    except Exception:
+        lines = 0
+
+    title = f"{benchmark.__BENCHMARK_NAME__}{paramString}"
+    try:
+        for line in lines:
+            if(line.find("CLB LUTs") >= 0 and line.count("|") == 6):
+                columnStart = line[:-2].rindex("|")
+                CLB_LUT_percentage = line[columnStart+1:-2]
+                # print(line)
+                # print(CLB_LUT_percentage)
+            elif (line.find("  LUT as Logic") >= 0 and line.count("|") == 6):
+                columnStart = line[:-2].rindex("|")
+                LUT_as_Logic_percentage = line[columnStart+1:-2]
+                # print(line)
+                # print(LUT_as_Logic_percentage)
+            elif (line.find("  LUT as Memory") >= 0 and line.count("|") == 6):
+                columnStart = line[:-2].rindex("|")
+                LUT_as_Mem_percentage = line[columnStart+1:-2]
+                # print(line)
+                # print(LUT_as_Mem_percentage)
+            elif (line.find("CLB Registers              |") >= 0 and line.count("|") == 6):
+                columnStart = line[:-2].rindex("|")
+                CLBReg_percentage = line[columnStart+1:-2]
+                # print(line)
+                # print(CLBReg_percentage)
+            elif (line.find("Block RAM Tile") >= 0 and line.count("|") == 6):
+                columnStart = line[:-2].rindex("|")
+                BRAM_percentage = line[columnStart+1:-2]
+                # print(line)
+                # print(BRAM_percentage)
+            elif (line.find("DSPs") >= 0 and line.count("|") == 6):
+                columnStart = line[:-2].rindex("|")
+                DSP_percentage = line[columnStart+1:-2]
+                # print(line)
+                # print(DSP_percentage)
+        outputLine = f"|{title:<30}|   {CLB_LUT_percentage}|        {LUT_as_Logic_percentage}|       {LUT_as_Mem_percentage}|        {CLBReg_percentage}|{BRAM_percentage}|{DSP_percentage}|\n"
+    except Exception:
+        outputLine = f"|{title:<30}| Parsing results failed ... \n"
+
+    with open(resourceUsageLogFile, "a") as file:
+        file.write(outputLine)
+
     testIndex += 1
-    break
 
 # 4. Reset config file to prevent git commit issues
 utilities.writeConfigFile(
         benchmark, experimentParams[0]
     )   
 
+with open(resourceUsageLogFile, "a") as file:
+    file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+
 runningTime_s = round(time.time() - startTime_s, 2)
 print(f"Done in {runningTime_s:07.2f}")
+
+# 5. Grab Reports and write to file
+# file:///home/gareth/streamblocks/savina-apps-in-cal/5p2_producerConsumer/fpgabuilds/20230426_0940_producerConsumer_C1_P1/build/_x/link/vivado/vpl/prj/prj.runs/impl_1/full_util_placed.rpt
