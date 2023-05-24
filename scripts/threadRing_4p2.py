@@ -7,6 +7,7 @@ class threadRing_4p2(benchmark.Benchmark):
         self.__DIRECTORY__ = "4p2_threadRing"
         self.__TOP_ACTOR_NAME__ = "threadRing.ThreadRing"
         self.__BENCHMARK_NAME__ = "ThreadRing"
+        self.__XCLBIN_NAME__ = "ThreadRing_kernel_xclbin"
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [

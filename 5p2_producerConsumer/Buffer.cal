@@ -19,7 +19,7 @@ namespace bndBuffer:
     //                     from the consumers.
     //     ToConsumers - Port array connected to each consumer. Transmits the requested items to the
     //                   consumers.
-    actor Buffer(uint B, uint P, uint C, uint numItemsPerProducer)
+    actor BufferActor(uint B, uint P, uint C, uint numItemsPerProducer)
         float FromProducer[P], uint(size=2) FromConsumer[C]
         ==>
         uint(size=2) ToProducer[P],  float ToConsumer[C]
@@ -37,7 +37,7 @@ namespace bndBuffer:
         // bufferFrontLocation tracks the location of the front of the buffer and is incremented by
         // one every time a new item is popped off. The itemsOnBuffer track how many items are
         // currently stored on the buffer. The index for the item at the back of the buffer is thus
-        // equal to: (bufferFrontLocation + itemsOnBuffer - 1) % B where B is the buffer size.
+        // equal to: (bufferFrontLocation + itemsOnBuffer - 1) mod B where B is the buffer size.
         List(type: float, size=B) buffer;
         uint itemsOnBuffer := 0;
         uint bufferFrontLocation := 0; // Moves as its a circular buffer
@@ -71,7 +71,7 @@ namespace bndBuffer:
                 // Start: pop from front of buffer - update the bufferFrontLocation pointer and the
                 // number of items on the buffer
                 poppedItem := buffer[bufferFrontLocation];
-                bufferFrontLocation := (bufferFrontLocation + 1) % B;
+                bufferFrontLocation := (bufferFrontLocation + 1) mod B;
                 itemsOnBuffer := itemsOnBuffer - 1;
                 // End: pop from front of buffer
                 
@@ -117,7 +117,7 @@ namespace bndBuffer:
                 pendingItems := (pendingItems - 1);
                 
                 // Push item to back of buffer
-                bufferIndexBack := ((bufferFrontLocation + (itemsOnBuffer)) % B);
+                bufferIndexBack := ((bufferFrontLocation + (itemsOnBuffer)) mod B);
                 buffer[bufferIndexBack] := item;
                 itemsOnBuffer := itemsOnBuffer + 1;
                 // Push item to back of buffer end
