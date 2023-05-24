@@ -41,17 +41,6 @@ def resetResultsPerExperiment() -> None:
 def writeResultsToFile(benchmark: Benchmark, reducerAlgorithms: List[str], experimentParams: Dict[str,int],resultsMap: Dict[str,Dict[str,str]]) -> None:
     actors = list(resultsMap[reducerAlgorithms[0]].keys())
     scalingAttributes = '_'.join(list(experimentParams[0].keys()))
-
-
-    # pad results where they are messed up
-    #maxLength = 0
-    #print(resultsMap)
-    #for reducerResults in resultsMap.values():
-    #    numResults = len(reducerResults[actors[0]])
-    #    if(maxLength < numResults):
-    #        maxLength = numResults
-
-    
     
     # Get results
     output = []
@@ -62,7 +51,13 @@ def writeResultsToFile(benchmark: Benchmark, reducerAlgorithms: List[str], exper
             paramValues = "_".join(str(x) for x in list(experimentParams[i].values()))
             #stateCount = resultsMap[reducerAlgorithm][actor][i]
             #print(resultsMap[reducerAlgorithms[0]][actor])
-            numConditions = resultsMap[reducerAlgorithms[0]][actor][i][1]
+            
+            # Sometimes the value of the condition is -1, sweep thourhg until its not
+            numConditions = "-1"
+            for j in range(len(reducerAlgorithms)):
+                if(numConditions == "-1"):
+                    numConditions = str(resultsMap[reducerAlgorithms[j]][actor][i][1])
+
             stateCount = [resultsMap[x][actor][i][0] for x in reducerAlgorithms]
             output.append([paramValues, numConditions] + stateCount)
 
@@ -75,8 +70,8 @@ def writeResultsToFile(benchmark: Benchmark, reducerAlgorithms: List[str], exper
 
 
 if __name__ == "__main__":
-    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
-    # benchmarks = [big_4p8_temp() ]#big_4p8(),producerConsumer_5p2()]
+    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12() big_4p8_temp()]
+    #benchmarks = [big_4p8() ]#big_4p8(),producerConsumer_5p2()]
     reducerAlgorithms = utilities.getReductionAlgorithms()
     #reducerAlgorithms = ["informative-tests", "knowledge-priorities"]
 
@@ -117,7 +112,7 @@ if __name__ == "__main__":
                             am_statistics_post_reduction=True,
                             reduction_algorithm=reducerAlgorithm,
                             compile_C_to_binary=False,
-                            timeout_s=60,
+                            timeout_s=600,
                         )
                     except subprocess.TimeoutExpired:
                         print("\t\tTimed out on compilation. Skipping the rest of the tests for this reducer algorithm")
@@ -138,7 +133,7 @@ if __name__ == "__main__":
             resultsMapPerReducer[reducerAlgorithm] = resultsMapPerExperiment
             resetResultsPerExperiment()
         writeResultsToFile(benchmark, reducerAlgorithms, experimentParams,resultsMapPerReducer)
-        print("\n\n\n")
+        print("\n\n")
 
     runningTime_s = round(time.time() - startTime_s, 2)
     print(f"{runningTime_s:07.2f} Done")
