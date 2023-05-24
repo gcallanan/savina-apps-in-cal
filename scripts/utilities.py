@@ -89,7 +89,7 @@ def buildActor(
     extra_c_compiler_flags: string = "", # Extra flags to add when compiling C to binary.
     timeout_s: int = 100000,
 ) -> None:
-    
+
     phase_timers_flag = ""
     if phase_timers:
         phase_timers_flag = "--set phase-timer=on"
@@ -125,7 +125,7 @@ def buildActor(
     compileTime_s = time.time() - start
 
     # 3. Generate binary from C
-    binarySize = 0
+    binarySize_bytes = 0
     if compile_C_to_binary:
         # 3.1 Compile the binary
         command = f"cc  {directory}/build/*.c {extra_c_compiler_flags} -o {directory}/build/calBinary -lm"

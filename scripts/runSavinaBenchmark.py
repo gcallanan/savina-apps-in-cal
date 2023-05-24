@@ -47,9 +47,17 @@ def runRuntimeExperiments(
         )
 
         utilities.writeConfigFile(benchmark, experimentParam)
-        utilities.buildActor(
-            benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm
-        )
+        try:
+            utilities.buildActor(
+                benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm, timeout_s=600,
+            )
+        except RuntimeError:
+                print("Runtime error on collect stats pre-am reduction")
+                break
+        except subprocess.TimeoutExpired:
+                print("Timeout:", 600, "s")
+                break
+        
         runTime_s = utilities.runActor(
             benchmark.__DIRECTORY__,
             benchmark.getInputFiles(),
@@ -57,6 +65,7 @@ def runRuntimeExperiments(
         )
         if not benchmark.confirmRuntime(**experimentParam):
             raise Exception(experimentParam + " did not return the correct value.")
+        
 
         runtimeExperimentResults.append(
             utilities.RuntimeExperimentResults(experimentParam, runTime_s)
@@ -99,8 +108,8 @@ def runCompilationExperiments(
         benchmark: Benchmark, 
         collectPreReductionStats = False,
         reduction_algorithm: string = "informative-tests",
-        firstExperimentIndex: int = 0, # The first index in the experiments to run
-        lastExperimentIndex: int = 0, # The last index in the experiments to run
+        firstExperimentIndex: int = 0, # Experiment will be repeated lastExperimentIndex - firstExperimentIndex times with each output file getting an index between firstExperimentIndex and lastExperimentIndex.
+        lastExperimentIndex: int = 0,
     ):
     
     for i in range(firstExperimentIndex,lastExperimentIndex + 1):
@@ -110,10 +119,12 @@ def runCompilationExperiments(
         compilerExperimentResults = []
         numTests = len(experimentParams)
 
+        print("a")
         # 1. Standard compilation experiments collecting phase timing and 
         startTime_s = time.time()
         utilities.makeDataDir(benchmark)
         for experimentParam in experimentParams:
+            print("b")
             runningTime_s = round(time.time() - startTime_s, 2)
             print(
                 f"{runningTime_s:07.2f} Running compile test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
@@ -121,18 +132,28 @@ def runCompilationExperiments(
             )
 
             utilities.writeConfigFile(benchmark, experimentParam)
-            compilerPhaseOutput, compileTime_s = utilities.buildActor(
-                benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm
-            )
-            compilerAmOutput, compileTime_s = utilities.buildActor(
-                benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_post_reduction=True, reduction_algorithm=reduction_algorithm
-            )
+            try:
+                compilerPhaseOutput, compileTime_s, binSize_bytes = utilities.buildActor(
+                    benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm, timeout_s=600, compile_C_to_binary=False
+                )
+                compilerAmOutput, compileTime_s, binSize_bytes = utilities.buildActor(
+                    benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, am_statistics_post_reduction=True, reduction_algorithm=reduction_algorithm, timeout_s=600, compile_C_to_binary=False
+                )
+            except subprocess.TimeoutExpired:
+                print("Timeout:", timeout_s, "s")
+                break
+            except RuntimeError:
+                print("Runtime error")
+                break
+
 
             compilerExperimentResults.append(
                 utilities.CompileTimeExperimentResults(
                     experimentParam, compileTime_s, compilerPhaseOutput, compilerAmOutput, False
                 )
             )
+
+            print("e")
             testIndex += 1
 
         utilities.writeConfigFile(
@@ -192,7 +213,7 @@ def runCompilationExperiments(
 if __name__ == "__main__":
     # 1. List of different benchmarks to run
     benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
-    #benchmarks = [producerConsumer_5p2()]
+    benchmarks = [producerConsumer_5p2()]
 
     # 2. Parse all arguments
     parser = argparse.ArgumentParser(description='Run Savina Benchmark suite for CAL.')
