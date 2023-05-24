@@ -74,6 +74,10 @@ def generateExperimentParams(
 
     return output
 
+
+def getReductionAlgorithms() -> List[str]:
+    return ['first', 'random', 'shortest-path-to-exec', 'informative-tests', 'informative-tests-if-true', 'informative-tests-if-false', 'knowledge-priorities']
+
 def buildActor(
     actorName: string,
     directory: string,

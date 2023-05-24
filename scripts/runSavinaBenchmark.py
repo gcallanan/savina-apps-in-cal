@@ -172,7 +172,6 @@ def runCompilationExperiments(
                 print("Runtime error on collect stats pre-am reduction")
                 break
 
-
             compilerExperimentResults.append(
                 utilities.CompileTimeExperimentResults(
                     experimentParam, compileTime_s, "", compilerAmOutput, True, reduction_algorithm
@@ -202,7 +201,7 @@ if __name__ == "__main__":
             default='informative-tests',
             const='informative-tests',
             nargs='?',
-            choices=['first', 'random', 'shortest-path-to-exec', 'informative-tests', 'informative-tests-if-true', 'informative-tests-if-false'],
+            choices=utilities.getReductionAlgorithms(),
             help='Choose which reduction algorithm to use to reduce the Actor Machines (default: %(default)s)'
         )
     args = parser.parse_args()

@@ -146,14 +146,14 @@ namespace bndBuffer:
         // Print all the values out when the number of done tokens received from the consumers
         // equals the total number of items produced from the producers. (Put simply, print when
         // everything is complete.)
-        /* printValues: action ==>
+        printValues: action ==>
         guard
-            numItemsPerProducer = totalItemsFromConsumers
+            P * numItemsPerProducer = totalItemsFromConsumers
         do
             totalItemsFromConsumers := totalItemsFromConsumers + 1;
             println("Producers items sum: " + sumProducers);
             println("Consumer tokens sum: " + sumConsumers);
-        end */
+        end
 
     end
 end
