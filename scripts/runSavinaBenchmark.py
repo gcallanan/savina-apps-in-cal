@@ -119,12 +119,10 @@ def runCompilationExperiments(
         compilerExperimentResults = []
         numTests = len(experimentParams)
 
-        print("a")
         # 1. Standard compilation experiments collecting phase timing and 
         startTime_s = time.time()
         utilities.makeDataDir(benchmark)
         for experimentParam in experimentParams:
-            print("b")
             runningTime_s = round(time.time() - startTime_s, 2)
             print(
                 f"{runningTime_s:07.2f} Running compile test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
@@ -153,7 +151,6 @@ def runCompilationExperiments(
                 )
             )
 
-            print("e")
             testIndex += 1
 
         utilities.writeConfigFile(

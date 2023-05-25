@@ -118,6 +118,11 @@ if __name__ == "__main__":
                         print("\t\tTimed out on compilation. Skipping the rest of the tests for this reducer algorithm")
                         failedOne = True
                         compilerAmOutput = "-"
+                    except RuntimeError:
+                        print("\t\tCompilation failed. Suspect heap space issue. Skipping the rest of the tests for this reducer algorithm")
+                        failedOne = True
+                        compilerAmOutput = "-"
+
                 else:
                     compilerAmOutput = "-"
 
