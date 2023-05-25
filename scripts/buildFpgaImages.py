@@ -33,6 +33,7 @@ from threadRing_4p2 import threadRing_4p2
 benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
 benchmark = benchmarks[2]
 experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
+reducerAlgorithm = "informative-tests"
 
 # 2. Set up all variables required for running experiments
 testIndex = 0
@@ -43,12 +44,12 @@ directoryTime = time.strftime('%Y%m%d_%H%M')
 #directoryTime = "20230427_1156"
 
 # 2.1 Create a common log file where everything is written to
-resourceUsageLogFile = f"{benchmark.__DIRECTORY__}/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_resource_usage.txt"
-file = open(resourceUsageLogFile, "a") #x
-file.write(f"File reporting FPGA resource usage for {benchmark.__BENCHMARK_NAME__} benchmark.\n")
+resourceUsageLogFile = f"{benchmark.__DIRECTORY__}/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_{reducerAlgorithm}_resource_usage.txt"
+file = open(resourceUsageLogFile, "w")
+file.write(f"File reporting FPGA resource usage for '{benchmark.__BENCHMARK_NAME__}' benchmark using reducer: {reducerAlgorithm}.\n")
 file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
 file.write(f"|                              |                        Resource Use Percentage                          |\n")
-file.write(f"| Experiment Name + Parameters | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPS  |\n")
+file.write(f"| Experiment Name + Parameters | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPSs |\n")
 file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
 file.close()
 
@@ -67,14 +68,14 @@ for experimentParam in experimentParams:
 
     # 3.1 Create the correct directory
     paramString = ''.join([f"_{k}{v}" for k,v in experimentParam.items()])
-    directory = benchmark.__DIRECTORY__ + f"/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}" + paramString
+    directory = benchmark.__DIRECTORY__ + f"/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_{reducerAlgorithm}" + paramString
     command = f"mkdir -p {directory}"
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
     # 3.2 Run streamblocks to generate source files for vivado
-    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {directory} {benchmark.__TOP_ACTOR_NAME__}"
+    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {directory} {benchmark.__TOP_ACTOR_NAME__}"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
