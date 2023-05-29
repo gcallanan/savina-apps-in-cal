@@ -8,6 +8,7 @@ class Benchmark(ABC):
         self.__DIRECTORY__ = ""
         self.__TOP_ACTOR_NAME__ = ""
         self.__XCLBIN_NAME__ = ""
+        self.__TOP_ACTOR_NAME_NO_PREPATH__ = ""
 
     @abstractmethod
     def getAMScalingParameters(self) -> List[tuple]:

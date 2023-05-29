@@ -22,7 +22,7 @@ namespace bndBuffer:
     actor BufferActor(uint B, uint P, uint C, uint numItemsPerProducer)
         float FromProducer[P], uint(size=2) FromConsumer[C]
         ==>
-        uint(size=2) ToProducer[P],  float ToConsumer[C]
+        uint(size=2) ToProducer[P],  float ToConsumer[C], float sumProducersPort, float sumConsumersPort
         :
 
         // List with an element for each producer. If the producer has been sent a request, it is
@@ -146,13 +146,13 @@ namespace bndBuffer:
         // Print all the values out when the number of done tokens received from the consumers
         // equals the total number of items produced from the producers. (Put simply, print when
         // everything is complete.)
-        printValues: action ==>
+        outputValues: action ==> sumProducersPort:[sumProducers], sumConsumersPort:[sumConsumers]
         guard
             P * numItemsPerProducer = totalItemsFromConsumers
         do
             totalItemsFromConsumers := totalItemsFromConsumers + 1;
-            println("Producers items sum: " + sumProducers);
-            println("Consumer tokens sum: " + sumConsumers);
+            //println("Producers items sum: " + sumProducers);
+            //println("Consumer tokens sum: " + sumConsumers);
         end
 
     end

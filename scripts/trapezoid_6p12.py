@@ -9,6 +9,7 @@ class trapezoid_6p12(benchmark.Benchmark):
         self.__TOP_ACTOR_NAME__ = "trapezoid.TrapezoidNetwork"
         self.__BENCHMARK_NAME__ = "trapezoid"
         self.__XCLBIN_NAME__ = "TrapezoidNetwork_kernel_xclbin"
+        self.__TOP_ACTOR_NAME_NO_PREPATH__ = "TrapezoidNetwork"
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [

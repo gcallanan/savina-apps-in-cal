@@ -9,6 +9,7 @@ class big_4p8(benchmark.Benchmark):
         self.__TOP_ACTOR_NAME__ = "big.BigNetwork"
         self.__BENCHMARK_NAME__ = "big"
         self.__XCLBIN_NAME__ = "BigNetwork_kernel_xclbin"
+        self.__TOP_ACTOR_NAME_NO_PREPATH__ = "BigNetwork"
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [

@@ -1,0 +1,15 @@
+namespace bndBuffer:
+ 
+    actor Sink() 
+        float sumProducersPort, float sumConsumersPort 
+        ==>:
+
+        printValues: action sumProducersPort:[sumProducers], sumConsumersPort:[sumConsumers] ==>
+        do
+            println("Producers items sum: " + sumProducers);
+            println("Consumer tokens sum: " + sumConsumers);
+        end
+
+    end
+
+end

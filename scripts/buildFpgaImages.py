@@ -29,74 +29,60 @@ from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
 
-# 1. Get experiment parameters
-benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
-benchmark = benchmarks[2]
-experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
-reducerAlgorithm = "informative-tests"
-
-# 2. Set up all variables required for running experiments
-testIndex = 0
-startTime_s = time.time()
-numTests = len(experimentParams)
-directory = benchmark.__DIRECTORY__
-directoryTime = time.strftime('%Y%m%d_%H%M')
-#directoryTime = "20230427_1156"
-
-# 2.1 Create a common log file where everything is written to
-resourceUsageLogFile = f"{benchmark.__DIRECTORY__}/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_{reducerAlgorithm}_resource_usage.txt"
-file = open(resourceUsageLogFile, "w")
-file.write(f"File reporting FPGA resource usage for '{benchmark.__BENCHMARK_NAME__}' benchmark using reducer: {reducerAlgorithm}.\n")
-file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
-file.write(f"|                              |                        Resource Use Percentage                          |\n")
-file.write(f"| Experiment Name + Parameters | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPSs |\n")
-file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
-file.close()
-
-
-# 3. Run all the experiments
-for experimentParam in experimentParams:
-    
-    runningTime_s = round(time.time() - startTime_s, 2)
-    print(
-            f"{runningTime_s:07.2f} Running runtime test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
-            experimentParam,
-        )
-
-    # 3.0 Write the experiment parameters to the CAL config file
-    utilities.writeConfigFile(benchmark, experimentParam)
-
-    # 3.1 Create the correct directory
-    paramString = ''.join([f"_{k}{v}" for k,v in experimentParam.items()])
-    directory = benchmark.__DIRECTORY__ + f"/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_{reducerAlgorithm}" + paramString
+def buildFpgaImage(benchmark: Benchmark, buildDirectory: str):
     command = f"mkdir -p {directory}"
+    command = f"mkdir -p {directory}/build"
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
-    # 3.2 Run streamblocks to generate source files for vivado
-    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {directory} {benchmark.__TOP_ACTOR_NAME__}"
+    # 3.2 Run streamblocks to generate source files for vivado and processor
+    # 3.2.1 For the processor platform component
+    command = f"streamblocks multicore --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {directory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
+    print(command)
+    exitCode = os.system(command)
+    if exitCode != 0:
+        raise Exception(f"'{command}' returned non-zero exit code.")
+    
+    # 3.2.2 For the vivado platform component
+    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {directory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
-    # 3.3 Run cmake to prepare vivado project
-    command = f"cd {directory}/build && cmake .. -DHLS_CLOCK_PERIOD=3.3 -DFPGA_NAME=xcu200-fsgd2104-2-e -DPLATFORM=xilinx_u200_xdma_201830_2 -DUSE_VITIS=on -DCMAKE_BUILD_TYPE=Debug"
+    # 3.3 Run cmake to prepare the project
+    command = f"cd {buildDirectory}/build && cmake .. -DHLS_CLOCK_PERIOD=3.3 -DFPGA_NAME=xcu200-fsgd2104-2-e -DPLATFORM=xilinx_u200_xdma_201830_2 -DUSE_VITIS=on -DCMAKE_BUILD_TYPE=Debug"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
-    # 3.4 Build the vivado project
-    command = f"cd {directory}/build && cmake --build . --target {benchmark.__XCLBIN_NAME__} -v"
+    # 3.4 Build the processor component of the project
+    command = f"cd {buildDirectory}/build && cmake --build . --target {benchmark.__TOP_ACTOR_NAME_NO_PREPATH__} -v"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
-    # 4. Write all results to file
-    vivadoLogFilePath = directory + "/build/_x/link/vivado/vpl/prj/prj.runs/impl_1/full_util_placed.rpt"
+    # 3.5 Build the vivado part of the project
+    command = f"cd {buildDirectory}/build && cmake --build . --target {benchmark.__XCLBIN_NAME__} -v"
+    print(command)
+    exitCode = os.system(command)
+    if exitCode != 0:
+        raise Exception(f"'{command}' returned non-zero exit code.")
+
+def writeResourceUsageFileHeader(resourceUsageLogFile_dir :str):
+    file = open(resourceUsageLogFile, "w")
+    file.write(f"File reporting FPGA resource usage for '{benchmark.__BENCHMARK_NAME__}'.\n")
+    file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+    file.write(f"|                              |                        Resource Use Percentage                          |\n")
+    file.write(f"| Experiment Name + Parameters | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPSs |\n")
+    file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+    file.close()
+
+def writeResourceUsage(benchmark: Benchmark, projectDirectory: str, resourceUsageLogFile: str, appendToFile: str):
+    vivadoLogFilePath = projectDirectory + "/build/vivado-hls/_x/link/vivado/vpl/prj/prj.runs/impl_1/full_util_placed.rpt"
     print(vivadoLogFilePath)
 
     try:
@@ -105,7 +91,7 @@ for experimentParam in experimentParams:
     except Exception:
         lines = 0
 
-    title = f"{benchmark.__BENCHMARK_NAME__}{paramString}"
+    title = f"{benchmark.__BENCHMARK_NAME__}_{appendToFile}"
     try:
         for line in lines:
             if(line.find("CLB LUTs") >= 0 and line.count("|") == 6):
@@ -145,18 +131,67 @@ for experimentParam in experimentParams:
     with open(resourceUsageLogFile, "a") as file:
         file.write(outputLine)
 
-    testIndex += 1
 
-# 4. Reset config file to prevent git commit issues
-utilities.writeConfigFile(
-        benchmark, experimentParams[0]
-    )   
+if __name__ == "__main__":
 
-with open(resourceUsageLogFile, "a") as file:
-    file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+    # 1. Get experiment parameters
+    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
+    benchmark = benchmarks[2]
+    experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
+    reducerAlgorithm = "informative-tests"
 
-runningTime_s = round(time.time() - startTime_s, 2)
-print(f"Done in {runningTime_s:07.2f}")
+    # 2. Set up all variables required for running experiments
+    testIndex = 0
+    startTime_s = time.time()
+    numTests = len(experimentParams)
+    directory = benchmark.__DIRECTORY__
+    directoryTime = time.strftime('%Y%m%d_%H%M')
+    #directoryTime = "20230427_1156"
 
-# 5. Grab Reports and write to file
-# file:///home/gareth/streamblocks/savina-apps-in-cal/5p2_producerConsumer/fpgabuilds/20230426_0940_producerConsumer_C1_P1/build/_x/link/vivado/vpl/prj/prj.runs/impl_1/full_util_placed.rpt
+    # 2.1 Create a common log file where everything is written to
+    resourceUsageLogFile = f"{benchmark.__DIRECTORY__}/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_{reducerAlgorithm}_resource_usage.txt"
+    writeResourceUsageFileHeader(resourceUsageLogFile)
+    count = 0
+
+    # 3. Run all the experiments
+    for experimentParam in experimentParams:
+        
+        runningTime_s = round(time.time() - startTime_s, 2)
+        print(
+                f"{runningTime_s:07.2f} Running runtime test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
+                experimentParam,
+            )
+
+        # 3.0 Write the experiment parameters to the CAL config file
+        utilities.writeConfigFile(benchmark, experimentParam)
+
+        # 3.1 Create the correct directory
+        paramString = ''.join([f"_{k}{v}" for k,v in experimentParam.items()])
+        directory = benchmark.__DIRECTORY__ + f"/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_{reducerAlgorithm}" + paramString
+        print(directory)
+        
+        # 3.2 Build the project
+        buildFpgaImage(benchmark, directory)
+
+        # 3.3 Write all results to file
+        writeResourceUsage(benchmark, directory, resourceUsageLogFile, paramString)
+        
+        # 3.4 Final Housekeeping
+        testIndex += 1
+        count += 1
+        if(count == 5):
+            break
+
+    # 4. Reset config file to prevent git commit issues
+    utilities.writeConfigFile(
+            benchmark, experimentParams[0]
+        )   
+
+    with open(resourceUsageLogFile, "a") as file:
+        file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+
+    runningTime_s = round(time.time() - startTime_s, 2)
+    print(f"Done in {runningTime_s:07.2f}")
+
+    # 5. Grab Reports and write to file
+    # file:///home/gareth/streamblocks/savina-apps-in-cal/5p2_producerConsumer/fpgabuilds/20230426_0940_producerConsumer_C1_P1/build/_x/link/vivado/vpl/prj/prj.runs/impl_1/full_util_placed.rpt

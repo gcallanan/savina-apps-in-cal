@@ -5,9 +5,10 @@ namespace bndBuffer:
     // central buffer actors.
     network BndBufferNetwork() ==> :
     entities
-        producers = [Producer(numItemsPerProducer=numItemsPerProducer, prodCost=prodCost): for i in 0..P-1];
-        consumers = [Consumer(consCost=consCost): for i in 0..C-1];
-        bufferActor = BufferActor(B=B, P=P, C=C, numItemsPerProducer=numItemsPerProducer);
+        producers = [Producer(numItemsPerProducer=numItemsPerProducer, prodCost=prodCost) {partition = "hw";}: for i in 0..P-1];
+        consumers = [Consumer(consCost=consCost) {partition = "hw";}: for i in 0..C-1];
+        bufferActor = BufferActor(B=B, P=P, C=C, numItemsPerProducer=numItemsPerProducer) {partition = "hw";};
+        sink = Sink();
     structure
         foreach uint i in 0..P-1 do
             producers[i].Out --> bufferActor.FromProducer[i];
@@ -18,6 +19,8 @@ namespace bndBuffer:
             consumers[i].Out --> bufferActor.FromConsumer[i];
             bufferActor.ToConsumer[i] --> consumers[i].In;
         end
-    end
 
+        bufferActor.sumProducersPort --> sink.sumProducersPort;
+        bufferActor.sumConsumersPort --> sink.sumConsumersPort;
+    end
 end

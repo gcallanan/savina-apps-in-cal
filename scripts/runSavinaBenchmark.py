@@ -210,7 +210,7 @@ def runCompilationExperiments(
 if __name__ == "__main__":
     # 1. List of different benchmarks to run
     benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
-    benchmarks = [producerConsumer_5p2()]
+    #benchmarks = [producerConsumer_5p2()]
 
     # 2. Parse all arguments
     parser = argparse.ArgumentParser(description='Run Savina Benchmark suite for CAL.')
