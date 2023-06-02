@@ -75,10 +75,10 @@ def buildFpgaImage(benchmark: Benchmark, buildDirectory: str, reducerAlgorithm: 
 def writeResourceUsageFileHeader(benchmark: Benchmark, resourceUsageLogFile :str):
     file = open(resourceUsageLogFile, "w")
     file.write(f"File reporting FPGA resource usage for '{benchmark.__BENCHMARK_NAME__}'.\n")
-    file.write(f"+--------------------------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
-    file.write(f"|                                                  |                        Resource Use Percentage                          |\n")
-    file.write(f"| Experiment Name + Parameters                     | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPSs |\n")
-    file.write(f"+--------------------------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+    file.write(f"+--------------------------------------------------+-----------------+-----------------+-----------------+-----------------+-------------+---------------+\n")
+    file.write(f"|                                                  |                        Resource Use Percentage                                                      |\n")
+    file.write(f"| Experiment Name + Parameters                     |    CLB LUTs     |  LUTs as Logic  |   LUTs as Mem   |  CLG Registers  |    BRAM     |      DPSs     |\n")
+    file.write(f"+--------------------------------------------------+-----------------+-----------------+-----------------+-----------------+-------------+---------------+\n")
     file.close()
 
 def writeResourceUsage(benchmark: Benchmark, projectDirectory: str, resourceUsageLogFile: str, appendToFile: str):
@@ -95,42 +95,51 @@ def writeResourceUsage(benchmark: Benchmark, projectDirectory: str, resourceUsag
     try:
         for line in lines:
             if(line.find("CLB LUTs") >= 0 and line.count("|") == 6):
-                columnStart = line[:-2].rindex("|")
-                CLB_LUT_percentage = line[columnStart+1:-2]
+                strSplit = line.split("|")
+                CLB_LUT_percentage = strSplit[5]
+                CLB_LUT_value = strSplit[2]
                 # print(line)
                 # print(CLB_LUT_percentage)
             elif (line.find("  LUT as Logic") >= 0 and line.count("|") == 6):
-                columnStart = line[:-2].rindex("|")
-                LUT_as_Logic_percentage = line[columnStart+1:-2]
+                strSplit = line.split("|")
+                LUT_as_Logic_percentage = strSplit[5]
+                LUT_as_Logic_value = strSplit[2]
                 # print(line)
                 # print(LUT_as_Logic_percentage)
             elif (line.find("  LUT as Memory") >= 0 and line.count("|") == 6):
-                columnStart = line[:-2].rindex("|")
-                LUT_as_Mem_percentage = line[columnStart+1:-2]
+                strSplit = line.split("|")
+                LUT_as_Mem_percentage = strSplit[5]
+                LUT_as_Mem_value = strSplit[2]
                 # print(line)
                 # print(LUT_as_Mem_percentage)
             elif (line.find("CLB Registers              |") >= 0 and line.count("|") == 6):
-                columnStart = line[:-2].rindex("|")
-                CLBReg_percentage = line[columnStart+1:-2]
+                strSplit = line.split("|")
+                CLBReg_percentage = strSplit[5]
+                CLBReg_value = strSplit[2]
                 # print(line)
                 # print(CLBReg_percentage)
             elif (line.find("Block RAM Tile") >= 0 and line.count("|") == 6):
-                columnStart = line[:-2].rindex("|")
-                BRAM_percentage = line[columnStart+1:-2]
+                strSplit = line.split("|")
+                BRAM_percentage = strSplit[5]
+                BRAM_value = round(float(strSplit[2]))
                 # print(line)
                 # print(BRAM_percentage)
             elif (line.find("DSPs") >= 0 and line.count("|") == 6):
-                columnStart = line[:-2].rindex("|")
-                DSP_percentage = line[columnStart+1:-2]
+                strSplit = line.split("|")
+                DSP_percentage = strSplit[5]
+                DSP_value = strSplit[2]
                 # print(line)
                 # print(DSP_percentage)
-        outputLine = f"|{title:<50}|   {CLB_LUT_percentage}|        {LUT_as_Logic_percentage}|       {LUT_as_Mem_percentage}|        {CLBReg_percentage}|{BRAM_percentage}|{DSP_percentage}|\n"
+        outputLine = f"|{title:<50}|{CLB_LUT_percentage}({CLB_LUT_value:<7})|{LUT_as_Logic_percentage}({LUT_as_Logic_value:<7})|{LUT_as_Mem_percentage}({LUT_as_Mem_value:<7})|{CLBReg_percentage}({CLBReg_value:<7})|{BRAM_percentage}({BRAM_value:<4})|{DSP_percentage}({DSP_value:<4})|\n"
     except Exception:
         outputLine = f"|{title:<50}| Parsing results failed ... \n"
 
     with open(resourceUsageLogFile, "a") as file:
         file.write(outputLine)
 
+def writeResourceUsageFileFooter(resourceUsageLogFile :str):
+    with open(resourceUsageLogFile, "a") as file:
+        file.write(f"+--------------------------------------------------+-----------------+-----------------+-----------------+-----------------+-------------+---------------+\n")
 
 if __name__ == "__main__":
 
@@ -187,8 +196,7 @@ if __name__ == "__main__":
             benchmark, experimentParams[0]
         )   
 
-    with open(resourceUsageLogFile, "a") as file:
-        file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+    writeResourceUsageFileFooter(resourceUsageLogFile)
 
     runningTime_s = round(time.time() - startTime_s, 2)
     print(f"Done in {runningTime_s:07.2f}")

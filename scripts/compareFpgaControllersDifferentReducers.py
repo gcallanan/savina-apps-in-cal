@@ -49,6 +49,7 @@ for reductionAlgorithm in reductionAlgorithms:
     # Just a test
     time.sleep(300)
 
+buildFpgaImages.writeResourceUsageFileFooter(resourceUsageLogFile)
     
 utilities.writeConfigFile(benchmark, experimentParams[0])   
 runningTime_s = round(time.time() - startTime_s, 2)
