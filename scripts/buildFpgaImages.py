@@ -29,23 +29,23 @@ from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
 
-def buildFpgaImage(benchmark: Benchmark, buildDirectory: str):
-    command = f"mkdir -p {directory}"
-    command = f"mkdir -p {directory}/build"
+def buildFpgaImage(benchmark: Benchmark, buildDirectory: str, reducerAlgorithm: str):
+    command = f"mkdir -p {buildDirectory}"
+    command = f"mkdir -p {buildDirectory}/build"
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
     # 3.2 Run streamblocks to generate source files for vivado and processor
     # 3.2.1 For the processor platform component
-    command = f"streamblocks multicore --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {directory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
+    command = f"streamblocks multicore --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {buildDirectory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
     
     # 3.2.2 For the vivado platform component
-    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {directory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
+    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {buildDirectory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
@@ -72,13 +72,13 @@ def buildFpgaImage(benchmark: Benchmark, buildDirectory: str):
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
 
-def writeResourceUsageFileHeader(resourceUsageLogFile_dir :str):
+def writeResourceUsageFileHeader(benchmark: Benchmark, resourceUsageLogFile :str):
     file = open(resourceUsageLogFile, "w")
     file.write(f"File reporting FPGA resource usage for '{benchmark.__BENCHMARK_NAME__}'.\n")
-    file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
-    file.write(f"|                              |                        Resource Use Percentage                          |\n")
-    file.write(f"| Experiment Name + Parameters | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPSs |\n")
-    file.write(f"+------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+    file.write(f"+--------------------------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
+    file.write(f"|                                                  |                        Resource Use Percentage                          |\n")
+    file.write(f"| Experiment Name + Parameters                     | CLB LUTs | LUTs as Logic |  LUTs as Mem | CLG Registers | BRAM  |  DPSs |\n")
+    file.write(f"+--------------------------------------------------+----------+---------------+--------------+---------------+-------+-------+\n")
     file.close()
 
 def writeResourceUsage(benchmark: Benchmark, projectDirectory: str, resourceUsageLogFile: str, appendToFile: str):
@@ -124,9 +124,9 @@ def writeResourceUsage(benchmark: Benchmark, projectDirectory: str, resourceUsag
                 DSP_percentage = line[columnStart+1:-2]
                 # print(line)
                 # print(DSP_percentage)
-        outputLine = f"|{title:<30}|   {CLB_LUT_percentage}|        {LUT_as_Logic_percentage}|       {LUT_as_Mem_percentage}|        {CLBReg_percentage}|{BRAM_percentage}|{DSP_percentage}|\n"
+        outputLine = f"|{title:<50}|   {CLB_LUT_percentage}|        {LUT_as_Logic_percentage}|       {LUT_as_Mem_percentage}|        {CLBReg_percentage}|{BRAM_percentage}|{DSP_percentage}|\n"
     except Exception:
-        outputLine = f"|{title:<30}| Parsing results failed ... \n"
+        outputLine = f"|{title:<50}| Parsing results failed ... \n"
 
     with open(resourceUsageLogFile, "a") as file:
         file.write(outputLine)
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
     benchmark = benchmarks[2]
     experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
-    reducerAlgorithm = "informative-tests"
+    reducerAlgorithm = "knowledge-priorities"
 
     # 2. Set up all variables required for running experiments
     testIndex = 0
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         print(directory)
         
         # 3.2 Build the project
-        buildFpgaImage(benchmark, directory)
+        buildFpgaImage(benchmark, directory, reducerAlgorithm)
 
         # 3.3 Write all results to file
         writeResourceUsage(benchmark, directory, resourceUsageLogFile, paramString)
