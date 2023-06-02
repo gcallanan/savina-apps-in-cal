@@ -79,6 +79,7 @@ def writeResourceUsageFileHeader(benchmark: Benchmark, resourceUsageLogFile :str
     file.write(f"|                                                  |                        Resource Use Percentage                                                      |\n")
     file.write(f"| Experiment Name + Parameters                     |    CLB LUTs     |  LUTs as Logic  |   LUTs as Mem   |  CLG Registers  |    BRAM     |      DPSs     |\n")
     file.write(f"+--------------------------------------------------+-----------------+-----------------+-----------------+-----------------+-------------+---------------+\n")
+    file.write(f"|baseline resource consumption                     | 15.54 ( 183751 )| 13.77 ( 162797 )|  3.54 (  20954 )| 10.95 ( 258830 )| 17.25 (372 )|  0.15 (   10 )|\n")
     file.close()
 
 def writeResourceUsage(benchmark: Benchmark, projectDirectory: str, resourceUsageLogFile: str, appendToFile: str):
