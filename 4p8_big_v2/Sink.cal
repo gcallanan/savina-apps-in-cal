@@ -1,0 +1,82 @@
+namespace big:
+    // @author: Gareth Callanan
+    //
+    // Actor that collects done messages from all the actors and reports when they are all complete.
+    // (Not really necessary for Tÿcho as CAL programs terminate automatically when there are no actions to execute
+    //  but it is part of the big benchmark so it is left in).
+    //
+    // Parameters:
+    //     P - Number of ping messages to send.
+    //     N - Number of messenger actors in the network
+    //
+    // Ports:
+    //     In - An array of N ports connected to the OutToSink ports of the messenger actors. Receives done tokens
+    //          from the messengers.
+    //     Done - Port that outputs a single token once done tokens have been received from all N messengers. Value of
+    //            token output should equal N.
+    actor Sink (uint N, uint P) int(size=32) In[N] ==> int(size=32) Done:
+        uint completedPingsCount := 0;
+
+        // Final action to execute once a pingComplete message has been received from all actors.
+        // The exepected output value should equal N.
+        donePings: action ==> Done:[completedPingsCount-1] // Subtract 1 as we add 1 in the action body.
+        guard
+            completedPingsCount = N
+        do
+            println("All actors complete");
+            completedPingsCount := completedPingsCount + 1; // End guard
+        end
+
+        // Generate a pingComplete action for every messenger actor.
+        foreach uint i in 0..N-1 generate
+            // Action that is triggered when a token is received from messenger actor i indicating it has completed its
+            // tasks. The value of the token does not matter, only that it exists.
+            pingComplete: action In[i]:[throwawayToken] ==>
+            do
+                println("Sink actor recieved done message from actor " + i);
+                completedPingsCount := completedPingsCount + 1;
+            end
+        end
+
+    end
+
+    // This is the same actor as above, only modified to have no ouput ports.
+    actor SinkStreamblocks (uint N, uint P) int(size=32) In[N] ==> :
+        uint completedPingsCount := 0;
+
+        // Final action to execute once a pingComplete message has been received from all actors.
+        // The exepected output value should equal N.
+        donePings: action ==> 
+        guard
+            completedPingsCount = N
+        do
+            completedPingsCount := completedPingsCount + 1; // End guard
+        end
+
+        // Generate a pingComplete action for every messenger actor.
+        foreach uint i in 0..N-1 generate
+            // Action that is triggered when a token is received from messenger actor i indicating it has completed its
+            // tasks. The value of the token does not matter, only that it exists.
+            pingComplete: action In[i]:[throwawayToken] ==>
+            do
+                completedPingsCount := completedPingsCount + 1;
+            end
+        end
+
+    end
+
+
+
+    // Network that wraps the Sink actor with fixed parameters for when testing the Messenger actor in a standalone
+    // manner.
+    /*network SinkWrapper() int(size=8) In[numMessengers] ==> int(size=32) Done:
+    entities
+        sink = Sink(N=numMessengers, P=numPingPongs);
+    structure
+        foreach uint i in 0..numMessengers-2 do // -2 as for N actors, we transmit to N-1 actors and then we range from 0 to N-1-1
+            In[i] --> sink.In[i];
+        end
+        sink.Done --> Done;
+    end*/
+
+end
