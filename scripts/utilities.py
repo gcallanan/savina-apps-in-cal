@@ -76,7 +76,7 @@ def generateExperimentParams(
 
 
 def getReductionAlgorithms() -> List[str]:
-    return ['first', 'random', 'shortest-path-to-exec', 'informative-tests', 'informative-tests-if-true', 'informative-tests-if-false', 'knowledge-priorities']
+    return ['first', 'random', 'shortest-path-to-exec', 'informative-tests', 'informative-tests-if-true', 'informative-tests-if-false', 'ordered-condition-checking']
 
 def buildActor(
     actorName: string,

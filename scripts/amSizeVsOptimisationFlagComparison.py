@@ -1,7 +1,7 @@
 """
 @author Gareth Callanan
 
-Script that tests how much the AM impacts program performance performance compared to the C compiler optimisation flags.
+Script that tests how much the AM size impacts program performance performance compared to the C compiler optimisation flags.
 """
 
 import csv

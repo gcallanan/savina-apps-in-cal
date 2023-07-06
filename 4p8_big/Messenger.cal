@@ -25,7 +25,7 @@ namespace big:
         uint numPingsComplete := 0;
         
         // Next destination to transmit a ping to.
-        int nextDestination := randInt(N - 1);
+        int nextDestination := index mod (N-1);//randInt(N - 1);
                 
         // Indicates that a ping has been sent and a new ping must not be sent until the corresponding pong has been
         // received.
@@ -80,7 +80,7 @@ namespace big:
             do
                 pingInFlight := 0;
                 numPingsComplete := numPingsComplete + 1;
-                nextDestination :=  randInt(N - 1);
+                nextDestination := nextDestination mod (N-1); //randInt(N - 1);
                 // println("Actor: " + index + " received pong " + numPingsComplete + " of " + P + " on port " + i + "! Next destination: " + nextDestination);
             end
 

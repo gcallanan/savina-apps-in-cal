@@ -1,3 +1,5 @@
+"""I think this script has outlived its usefulness. Cannot remember its purpose"""
+
 import utilities
 import time
 import subprocess

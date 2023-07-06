@@ -8,8 +8,9 @@ class big_4p8(benchmark.Benchmark):
         self.__DIRECTORY__ = "4p8_big"
         self.__TOP_ACTOR_NAME__ = "big.BigNetwork"
         self.__BENCHMARK_NAME__ = "big"
-        self.__XCLBIN_NAME__ = "BigNetwork_kernel_xclbin"
+        self.__XCLBIN_NAME__ = "BigNetworkStreamblocks_kernel_xclbin"
         self.__TOP_ACTOR_NAME_NO_PREPATH__ = "BigNetwork"
+        self.__TOP_ACTOR_NAME_STREAMBLOCKS_SUFFIX__ = "Streamblocks"
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [

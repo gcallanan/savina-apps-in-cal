@@ -12,7 +12,7 @@ namespace big:
     //            The value of the token should be equal to N.
     network BigNetwork() ==> int(size=32) Done:
     entities
-        messengers = [Messenger(N=numMessengers, P=numPingPongs, index=i): for i in 0..numMessengers-1];
+        messengers = [Messenger(N=numMessengers, P=numPingPongs, index=i) {partition = "hw";}: for i in 0..numMessengers-1];
         sink = Sink(N=numMessengers, P=numPingPongs);
     structure
         // Link messenger actor ports to each other
@@ -28,6 +28,27 @@ namespace big:
             messengers[i].OutToSink --> sink.In[i];
         end
         sink.Done --> Done;
+    end
+
+    // This is the same network as the one above, only modified so that the network has no output ports as this is not
+    // supported when using streamblocks to compile.
+    network BigNetworkStreamblocks() ==> :
+    entities
+        messengers = [Messenger(N=numMessengers, P=numPingPongs, index=i) {partition = "hw";}: for i in 0..numMessengers-1];
+        sink = Sink(N=numMessengers, P=numPingPongs);
+    structure
+        // Link messenger actor ports to each other
+        foreach uint i in 0..numMessengers-1 do
+            foreach uint j in i..numMessengers-2 do // -2 as the each actor has N-1 Out/In ports.
+                messengers[i].Out[j] --> messengers[j+1].In[i];
+                messengers[j+1].Out[i] --> messengers[i].In[j];
+            end
+        end
+
+        // Link the OutToSink port on each messenger actor to the sink actor.
+        foreach uint i in 0..numMessengers-1 do
+            messengers[i].OutToSink --> sink.In[i];
+        end
     end
 
     // To help understand what is happening above, when template substitution and port enumeration is performed on the

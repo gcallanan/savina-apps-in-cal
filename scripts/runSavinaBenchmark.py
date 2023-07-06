@@ -29,7 +29,7 @@ The output for these results are stored in:
 """
 def runRuntimeExperiments(
         benchmark: Benchmark,
-        reduction_algorithm: string = "informative-tests", #<(first | random | shortest-path-to-exec | informative-tests | informative-tests-if-true | informative-tests-if-false)>)
+        reduction_algorithm: string = "informative-tests", #<(first | random | shortest-path-to-exec | informative-tests | informative-tests-if-true | informative-tests-if-false | ordered-condition-checking)>)
     ):
     experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
     testIndex = 0
@@ -52,10 +52,9 @@ def runRuntimeExperiments(
                 benchmark.__TOP_ACTOR_NAME__, benchmark.__DIRECTORY__, phase_timers=True, reduction_algorithm=reduction_algorithm, timeout_s=600,
             )
         except RuntimeError:
-                print("Runtime error on collect stats pre-am reduction")
-                break
+                raise RuntimeError("Runtime error on collect stats pre-am reduction")
         except subprocess.TimeoutExpired:
-                print("Timeout:", 600, "s")
+                raise RuntimeError("Timeout:", 600, "s")
                 break
         
         runTime_s = utilities.runActor(

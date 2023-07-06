@@ -1,3 +1,11 @@
+"""
+Script that takes a selected savina benchmark and fixed experiment parameter 
+values and builds an FPGA image fusing different reducer algorithms.
+
+The resource utilisation of the different images is then written to file.
+"""
+
+
 import time
 import utilities
 import os
@@ -7,15 +15,16 @@ import buildFpgaImages
 # Import all the benchmarks
 from benchmark import Benchmark
 from big_4p8 import big_4p8
+from big_4p8_v2 import big_4p8_v2
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
 
-reductionAlgorithms = ["first", "informative-tests", "knowledge-priorities",  "random"]
+reductionAlgorithms = ["first", "knowledge-priorities", "informative-tests", "ordered-condition-checking"]
 
-benchmark = big_4p8() #producerConsumer_5p2()
+benchmark = producerConsumer_5p2()
 experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
-experimentParam = experimentParams[15]
+experimentParam = experimentParams[3]
 
 
 startTime_s = time.time()
@@ -46,8 +55,8 @@ for reductionAlgorithm in reductionAlgorithms:
     # 3.3 Write all results to file
     buildFpgaImages.writeResourceUsage(benchmark, directory, resourceUsageLogFile, f"{reductionAlgorithm}_{paramString}")
 
-    # Just a test
-    time.sleep(300)
+    # Dont think this is necessary, was here for debugging and now I cant be bothered to remove it.
+    time.sleep(30)
 
 buildFpgaImages.writeResourceUsageFileFooter(resourceUsageLogFile)
     

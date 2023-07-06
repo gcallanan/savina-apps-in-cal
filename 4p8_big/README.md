@@ -10,6 +10,8 @@ A Savina implementation of this benchmark can be found in the [BigHabaneroActorB
 
 [BigNetwork.cal](./BigNetwork.cal) describes the overall network for the benchmark.
 
+Compared to [Big_v2](../4p8_big_v2/), this version of Big has fewer actions in each messenger actor but when converted to an Actor Machine, the maximum messenger actors size compilable tends to be bigger.
+
 ## Quick Run
 From within the 4P8-big directory:
 1. mkdir build

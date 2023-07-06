@@ -25,6 +25,7 @@ import re
 # Import all the benchmarks
 from benchmark import Benchmark
 from big_4p8 import big_4p8
+from big_4p8_v2 import big_4p8_v2
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
@@ -38,14 +39,14 @@ def buildFpgaImage(benchmark: Benchmark, buildDirectory: str, reducerAlgorithm: 
 
     # 3.2 Run streamblocks to generate source files for vivado and processor
     # 3.2.1 For the processor platform component
-    command = f"streamblocks multicore --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {buildDirectory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
+    command = f"streamblocks multicore --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {buildDirectory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}{benchmark.__TOP_ACTOR_NAME_STREAMBLOCKS_SUFFIX__}"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
         raise Exception(f"'{command}' returned non-zero exit code.")
     
-    # 3.2.2 For the vivado platform component
-    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {buildDirectory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}"
+    # 3.2.2 For the vivado platform component default-controller= qj or bc
+    command = f"streamblocks vivado-hls --set experimental-network-elaboration=on --set default-controller=qj --set reduction-algorithm={reducerAlgorithm} --source-path {benchmark.__DIRECTORY__}:../streamblocks-examples/system --target-path {buildDirectory} --set partitioning=on {benchmark.__TOP_ACTOR_NAME__}{benchmark.__TOP_ACTOR_NAME_STREAMBLOCKS_SUFFIX__}"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
@@ -59,7 +60,7 @@ def buildFpgaImage(benchmark: Benchmark, buildDirectory: str, reducerAlgorithm: 
         raise Exception(f"'{command}' returned non-zero exit code.")
 
     # 3.4 Build the processor component of the project
-    command = f"cd {buildDirectory}/build && cmake --build . --target {benchmark.__TOP_ACTOR_NAME_NO_PREPATH__} -v"
+    command = f"cd {buildDirectory}/build && cmake --build . --target {benchmark.__TOP_ACTOR_NAME_NO_PREPATH__}{benchmark.__TOP_ACTOR_NAME_STREAMBLOCKS_SUFFIX__} -v"
     print(command)
     exitCode = os.system(command)
     if exitCode != 0:
@@ -145,10 +146,12 @@ def writeResourceUsageFileFooter(resourceUsageLogFile :str):
 if __name__ == "__main__":
 
     # 1. Get experiment parameters
-    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
-    benchmark = benchmarks[2]
-    experimentParams = utilities.generateExperimentParams(benchmark.getBuildParameters())
-    reducerAlgorithm = "knowledge-priorities"
+    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12(), big_4p8_v2()]
+    benchmark = benchmarks[1]
+    experimentParams = utilities.generateExperimentParams(benchmark.getAMScalingExperimentParameters())
+    reducerAlgorithm = "ordered-condition-checking"
+
+
 
     # 2. Set up all variables required for running experiments
     testIndex = 0
@@ -160,12 +163,11 @@ if __name__ == "__main__":
 
     # 2.1 Create a common log file where everything is written to
     resourceUsageLogFile = f"{benchmark.__DIRECTORY__}/fpgabuilds/{directoryTime}_{benchmark.__BENCHMARK_NAME__}_{reducerAlgorithm}_resource_usage.txt"
-    writeResourceUsageFileHeader(resourceUsageLogFile)
+    writeResourceUsageFileHeader(benchmark, resourceUsageLogFile)
     count = 0
 
     # 3. Run all the experiments
     for experimentParam in experimentParams:
-        
         runningTime_s = round(time.time() - startTime_s, 2)
         print(
                 f"{runningTime_s:07.2f} Running runtime test {testIndex+1} of {numTests} for {benchmark.__TOP_ACTOR_NAME__} with params:",
@@ -186,11 +188,6 @@ if __name__ == "__main__":
         # 3.3 Write all results to file
         writeResourceUsage(benchmark, directory, resourceUsageLogFile, paramString)
         
-        # 3.4 Final Housekeeping
-        testIndex += 1
-        count += 1
-        if(count == 5):
-            break
 
     # 4. Reset config file to prevent git commit issues
     utilities.writeConfigFile(
