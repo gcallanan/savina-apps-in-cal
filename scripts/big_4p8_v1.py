@@ -3,7 +3,7 @@ from typing import List
 import struct
 
 
-class big_4p8(benchmark.Benchmark):
+class big_4p8_v1(benchmark.Benchmark):
     def __init__(self):
         self.__DIRECTORY__ = "4p8_big"
         self.__TOP_ACTOR_NAME__ = "big.BigNetwork"

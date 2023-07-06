@@ -14,7 +14,7 @@ import buildFpgaImages
 
 # Import all the benchmarks
 from benchmark import Benchmark
-from big_4p8 import big_4p8
+from big_4p8_v1 import big_4p8_v1
 from big_4p8_v2 import big_4p8_v2
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2

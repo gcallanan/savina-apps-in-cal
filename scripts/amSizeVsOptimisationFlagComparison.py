@@ -9,7 +9,7 @@ import utilities
 import benchmark
 
 from threadRing_4p2 import threadRing_4p2
-from big_4p8 import big_4p8
+from big_4p8_v1 import big_4p8_v1
 from producerConsumer_5p2 import producerConsumer_5p2
 from trapezoid_6p12 import trapezoid_6p12
 
@@ -116,7 +116,7 @@ def runAmVsOptimisationTests(benchmark: benchmark.Benchmark):
 # Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
     print("Testing impact AM performance has on a system with different levels of optimisation.")
-    benchmarks = [threadRing_4p2(), big_4p8() ,producerConsumer_5p2(), trapezoid_6p12()]
+    benchmarks = [threadRing_4p2(), big_4p8_v1() ,producerConsumer_5p2(), trapezoid_6p12()]
     print("------------------------------------------------------------------------------------")
     for benchmark in benchmarks:
         runAmVsOptimisationTests(benchmark)

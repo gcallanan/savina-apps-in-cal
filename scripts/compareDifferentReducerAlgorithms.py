@@ -12,8 +12,8 @@ from benchmark import Benchmark
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
-from big_4p8_temp import big_4p8_temp
-from big_4p8 import big_4p8
+from big_4p8_v2 import big_4p8_v2
+from big_4p8_v1 import big_4p8_v1
 
 
 resultsMapPerExperiment = {}
@@ -72,7 +72,7 @@ def writeResultsToFile(benchmark: Benchmark, reducerAlgorithms: List[str], exper
 
 
 if __name__ == "__main__":
-    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12(), big_4p8_temp()]
+    benchmarks = [threadRing_4p2(), big_4p8_v1(), producerConsumer_5p2(), trapezoid_6p12(), big_4p8_v2()]
     #benchmarks = [big_4p8() ]#big_4p8(),producerConsumer_5p2()]
     reducerAlgorithms = utilities.getReductionAlgorithms()
     #reducerAlgorithms = ["informative-tests", "knowledge-priorities"]

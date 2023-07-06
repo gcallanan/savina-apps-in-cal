@@ -15,7 +15,8 @@ from typing import List
 
 # Import all the benchmarks
 from benchmark import Benchmark
-from big_4p8 import big_4p8
+from big_4p8_v1 import big_4p8_v1
+from big_4p8_v2 import big_4p8_v2
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
@@ -208,7 +209,7 @@ def runCompilationExperiments(
 # Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
     # 1. List of different benchmarks to run
-    benchmarks = [threadRing_4p2(), big_4p8(), producerConsumer_5p2(), trapezoid_6p12()]
+    benchmarks = [threadRing_4p2(), big_4p8_v1(), big_4p8_v2(), producerConsumer_5p2(), trapezoid_6p12()]
     #benchmarks = [producerConsumer_5p2()]
 
     # 2. Parse all arguments
