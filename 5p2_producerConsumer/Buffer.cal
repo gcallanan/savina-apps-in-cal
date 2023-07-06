@@ -22,7 +22,8 @@ namespace bndBuffer:
     actor BufferActor(uint B, uint P, uint C, uint numItemsPerProducer)
         float FromProducer[P], uint(size=2) FromConsumer[C]
         ==>
-        uint(size=2) ToProducer[P],  float ToConsumer[C], float sumProducersPort, float sumConsumersPort
+        uint(size=2) ToProducer[P],  float ToConsumer[C], float sumProducersPort, float sumConsumersPort,
+        uint totalItemsFromProducers, uint totalItemsFromConsumers
         :
 
         // List with an element for each producer. If the producer has been sent a request, it is
@@ -50,6 +51,7 @@ namespace bndBuffer:
 
         // Number of tokens received from consumers indicating that they have completed processing
         uint totalItemsFromConsumers := 0;
+        uint totalItemsFromProducers := 0;
 
         // Sum all values of items from producers and consumers and then print them out
         // The goal is to prevent the C compiler from optimising away too much real stuff
@@ -123,6 +125,7 @@ namespace bndBuffer:
                 // Push item to back of buffer end
 
                 sumProducers := sumProducers + item;
+                totalItemsFromProducers := totalItemsFromProducers + 1;
 
                 // Print statements that were useful for debugging
                 /*
@@ -146,7 +149,9 @@ namespace bndBuffer:
         // Print all the values out when the number of done tokens received from the consumers
         // equals the total number of items produced from the producers. (Put simply, print when
         // everything is complete.)
-        outputValues: action ==> sumProducersPort:[sumProducers], sumConsumersPort:[sumConsumers]
+        outputValues: action ==> sumProducersPort:[sumProducers], sumConsumersPort:[sumConsumers],
+                                 totalItemsFromProducers:[totalItemsFromProducers],
+                                 totalItemsFromConsumers:[totalItemsFromConsumers - 1] // Subtract one as we add one to prevent action executing again
         guard
             P * numItemsPerProducer = totalItemsFromConsumers
         do

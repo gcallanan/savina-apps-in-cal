@@ -1,5 +1,6 @@
 import benchmark
 from typing import List
+import struct
 
 class producerConsumer_5p2(benchmark.Benchmark):
     def __init__(self):
@@ -24,19 +25,22 @@ class producerConsumer_5p2(benchmark.Benchmark):
 
     def getBuildParameters(self) -> List[tuple]:
         parameters = self.getAMScalingParameters()
-        parameters = parameters + []
+        parameters = parameters + [
+            ("nItems", [1000000]) # The number of tokens each producer sends
+        ]
         return parameters
 
     def getConfigFileContents(self, **kwargs) -> str:
         P = kwargs["P"]
         C = kwargs["C"]
         B = kwargs["B"] if "B" in kwargs else 50
+        nItems = kwargs["nItems"]
 
         configFileContents = f"""namespace bndBuffer:
     uint B = {B}; // Buffer size
     uint P = {P}; // Number of producers
     uint C = {C}; // Number of consumers
-    uint numItemsPerProducer = 1000000;
+    uint numItemsPerProducer = {nItems};
     uint prodCost = 1; // Cost to perform action by producer
     uint consCost = 1; // Cost to perform action by consumer
 end
@@ -44,15 +48,27 @@ end
         return configFileContents
 
     def confirmRuntime(self, **kwargs) -> bool:
-        # Dont really have a check for this test. Just hope that it works.
-        # Thats a viable strategy right?
+        P = kwargs["P"]
+        C = kwargs["C"]
+        nItems = kwargs["nItems"]
+
+        with open(self.__DIRECTORY__ + "/data/out", mode="rb") as file:
+            fileContent = file.read()
+            checksum = struct.unpack("II", fileContent)
+            if checksum[0] != P*nItems or checksum[1] != P*nItems:
+                raise Exception(
+                    f"P={P}, C={C}. Checksum value: {checksum[0]}, {checksum[1]}, expected {P*nItems} for both."
+                )
+
         return True
 
     def getInputFiles(self) -> List[str]:
         return []
 
     def getOutputFiles(self) -> List[str]:
-        return []
+        retList = ["out"]
+        retList = [self.__DIRECTORY__ + "/data/" + s for s in retList]
+        return retList
 
     def getDependentVariableKey(self) -> str:
         return "P"
