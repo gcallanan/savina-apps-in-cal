@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     # 1. Get experiment parameters
     benchmarks = [threadRing_4p2(), big_4p8_v1(), producerConsumer_5p2(), trapezoid_6p12(), big_4p8_v2()]
-    benchmark = benchmarks[1]
+    benchmark = benchmarks[2]
     experimentParams = utilities.generateExperimentParams(benchmark.getAMScalingExperimentParameters())
     reducerAlgorithm = "ordered-condition-checking"
 

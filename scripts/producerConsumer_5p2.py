@@ -7,9 +7,9 @@ class producerConsumer_5p2(benchmark.Benchmark):
         self.__DIRECTORY__ = "5p2_producerConsumer"
         self.__TOP_ACTOR_NAME__ = "bndBuffer.BndBufferNetwork"
         self.__BENCHMARK_NAME__ = "producerConsumer"
-        self.__XCLBIN_NAME__ = "BndBufferNetwork_kernel_xclbin"
+        self.__XCLBIN_NAME__ = "BndBufferNetworkSb_kernel_xclbin"
         self.__TOP_ACTOR_NAME_NO_PREPATH__ = "BndBufferNetwork"
-        self.__TOP_ACTOR_NAME_STREAMBLOCKS_SUFFIX__ = "Streamblocks"
+        self.__TOP_ACTOR_NAME_STREAMBLOCKS_SUFFIX__ = "Sb"
 
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [

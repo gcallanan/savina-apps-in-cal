@@ -18,7 +18,7 @@ namespace bndBuffer:
 
     // This is the same actor as the one above, only modified so that the network has no output ports as this is not
     // supported when using streamblocks to compile.
-    actor SinkFpga() 
+    actor SinkSb() 
         float sumProducersPort, float sumConsumersPort,
         uint totalItemsFromProducersPort, uint totalItemsFromConsumersPort
         ==>:

@@ -30,12 +30,12 @@ namespace bndBuffer:
 
     // This is the same network as the one above, only modified so that the network has no output ports as this is not
     // supported when using streamblocks to compile.
-    network BndBufferNetworkFpga() ==> :
+    network BndBufferNetworkSb() ==> :
     entities
         producers = [Producer(numItemsPerProducer=numItemsPerProducer, prodCost=prodCost) {partition = "hw";}: for i in 0..P-1];
         consumers = [Consumer(consCost=consCost) {partition = "hw";}: for i in 0..C-1];
         bufferActor = BufferActor(B=B, P=P, C=C, numItemsPerProducer=numItemsPerProducer) {partition = "hw";};
-        sink = SinkFpga();
+        sink = SinkSb();
     structure
         foreach uint i in 0..P-1 do
             producers[i].Out --> bufferActor.FromProducer[i];
@@ -50,6 +50,6 @@ namespace bndBuffer:
         bufferActor.sumProducersPort --> sink.sumProducersPort;
         bufferActor.sumConsumersPort --> sink.sumConsumersPort;
         bufferActor.totalItemsFromProducers --> sink.totalItemsFromProducersPort;
-        bufferActor.totalItemsFromConsumers --> sink.totalItemsFromConsumers;
+        bufferActor.totalItemsFromConsumers --> sink.totalItemsFromConsumersPort;
     end
 end
