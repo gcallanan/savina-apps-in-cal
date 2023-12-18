@@ -15,7 +15,7 @@ class big_4p8_v2(benchmark.Benchmark):
     def getAMScalingParameters(self) -> List[tuple]:
         parameters = [
             ("N", [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ,13 ,14, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60]),
-            # ("N", [2, 3, 4, 5, 6]),
+            #("N", [5]),
             #("N", [2, 3]),
         ]
         return parameters
@@ -24,7 +24,7 @@ class big_4p8_v2(benchmark.Benchmark):
         parameters = self.getAMScalingParameters()
 
         parameters = parameters + [
-            ("P", [1000, 10000, 100000, 1000000, 10000000]),
+            ("P", [1000, 10000, 100000, 1000000, 10000000, 100000000]),
         ]
         return parameters
 
