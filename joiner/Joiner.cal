@@ -1,0 +1,8 @@
+namespace joiner:
+    
+    actor Joiner (uint K) uint In[K] ==> uint Out:
+        action In[0..K-1]:[tokens] ==> Out:[tokens] repeat K  
+        end
+    end
+
+end

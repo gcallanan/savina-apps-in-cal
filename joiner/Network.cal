@@ -1,0 +1,22 @@
+namespace joiner:
+    actor Source (int index) ==> uint Out:
+        uint done := 0;
+       
+        action ==> Out:[index] 
+        guard done = 0
+        do
+            done := 1;
+        end
+    end
+    
+    network Top() ==> uint Out:
+    entities
+        sources = [Source(index=i): for i in 0..K-1];
+        joiner = Joiner(K=K);
+    structure
+        foreach uint i in 0..K-1 do
+            sources[i].Out --> joiner.In[i];
+        end
+        joiner.Out --> Out;
+    end
+end

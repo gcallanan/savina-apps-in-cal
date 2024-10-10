@@ -1,0 +1,8 @@
+namespace splitter:
+    
+    actor Splitter (uint K) uint In ==> uint Out[K]:
+        action In:[tokens] repeat K ==> Out[0..K-1]:[tokens]   
+        end
+    end
+
+end

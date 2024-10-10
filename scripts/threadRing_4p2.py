@@ -41,7 +41,7 @@ end
     def getInputFiles(self) -> List[str]:
         return []
 
-    def getOutputFiles(self) -> List[str]:
+    def getOutputFiles(self, experimentParams) -> List[str]:
         return []
 
     def getDependentVariableKey(self) -> str:

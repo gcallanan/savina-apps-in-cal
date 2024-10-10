@@ -89,7 +89,7 @@ class Benchmark(ABC):
         pass
 
     @abstractmethod
-    def getOutputFiles(self) -> List[str]:
+    def getOutputFiles(self, experimentParams) -> List[str]:
         pass
 
     @abstractmethod

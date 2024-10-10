@@ -57,7 +57,7 @@ end
     def getInputFiles(self) -> List[str]:
         return []
 
-    def getOutputFiles(self) -> List[str]:
+    def getOutputFiles(self, experimentParams) -> List[str]:
         retList = ["out"]
         retList = [self.__DIRECTORY__ + "/data/" + s for s in retList]
         return retList

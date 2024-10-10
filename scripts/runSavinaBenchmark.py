@@ -20,6 +20,8 @@ from big_4p8_v2 import big_4p8_v2
 from trapezoid_6p12 import trapezoid_6p12
 from producerConsumer_5p2 import producerConsumer_5p2
 from threadRing_4p2 import threadRing_4p2
+from joiner import joiner
+from splitter import splitter
 
 """
 Run all experiments where the runtime of the actor network is recorded. These experiments
@@ -61,7 +63,7 @@ def runRuntimeExperiments(
         runTime_s = utilities.runActor(
             benchmark.__DIRECTORY__,
             benchmark.getInputFiles(),
-            benchmark.getOutputFiles(),
+            benchmark.getOutputFiles(experimentParam),
         )
         if not benchmark.confirmRuntime(**experimentParam):
             raise Exception(experimentParam + " did not return the correct value.")
@@ -209,8 +211,8 @@ def runCompilationExperiments(
 # Main function that runs all tests for the different benchmarks included in the benchmarks array below
 if __name__ == "__main__":
     # 1. List of different benchmarks to run
-    benchmarks = [threadRing_4p2(), big_4p8_v1(), big_4p8_v2(), producerConsumer_5p2(), trapezoid_6p12()]
-    #benchmarks = [producerConsumer_5p2()]
+    benchmarks = [threadRing_4p2(), big_4p8_v1(), big_4p8_v2(), producerConsumer_5p2(), trapezoid_6p12(), splitter(), joiner()]
+    #benchmarks = [splitter()]
 
     # 2. Parse all arguments
     parser = argparse.ArgumentParser(description='Run Savina Benchmark suite for CAL.')

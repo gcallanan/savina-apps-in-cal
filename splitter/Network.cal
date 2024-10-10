@@ -1,0 +1,22 @@
+namespace splitter:
+    actor Source () ==> uint Out:
+        uint count := 0;
+       
+        action ==> Out:[count] 
+        guard count < K
+        do
+            count := count + 1;
+        end
+    end
+    
+    network Top() ==> uint Out[K]:
+    entities
+        source = Source();
+        splitter = Splitter(K=K);
+    structure
+        foreach uint i in 0..K-1 do
+            splitter.Out[i] --> Out[i];
+        end
+        source.Out --> splitter.In;
+    end
+end
