@@ -136,9 +136,9 @@ if __name__ == "__main__":
     benchmarks = [threadRing_4p2(), big_4p8_v1(), producerConsumer_5p2(), trapezoid_6p12(), big_4p8_v2()]
     benchmark = benchmarks[4]
     experimentParams = utilities.generateExperimentParams(benchmark.getAMScalingExperimentParameters())
-    #reducerAlgorithm = "first"
-    reducerAlgorithm = "ordered-condition-checking"
-    bypassAMGeneration=True
+    reducerAlgorithm = "first"
+    #reducerAlgorithm = "ordered-condition-checking"
+    bypassAMGeneration=False
 
     # 2. Set up all variables required for running experiments
     testIndex = 0
@@ -185,3 +185,34 @@ if __name__ == "__main__":
 
     runningTime_s = round(time.time() - startTime_s, 2)
     print(f"Done in {runningTime_s:07.2f}")
+
+
+import csv
+
+def table_to_csv(input_file, output_file):
+    """
+    Converts the generated table with rows and columns to a CSV file.
+
+    Parameters:
+        input_file (str): Path to the input file containing the table.
+        output_file (str): Path to the output CSV file.
+    """
+    with open(input_file, 'r') as infile:
+        lines = infile.readlines()
+
+    # Process header row
+    header = ["Reducer"] + [col.strip() for col in lines[1].split('|') if col != ''] + ["Execution time (us)"]
+
+    # Process rows
+    rows = []
+    for line in lines[3:]:  # Skip separator rows
+        if not line.strip():
+            continue
+        columns = [col.strip() for col in line.split('|') if col != '']
+        rows.append(["AM Bypassed"] + columns + ["-1"])  # Add default columns
+
+    # Write to CSV
+    with open(output_file, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(header)
+        csvwriter.writerows(rows)
