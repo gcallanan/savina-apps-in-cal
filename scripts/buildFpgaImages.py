@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
 import csv
 
-def table_to_csv(input_file, output_file):
+def table_to_csv(input_file, output_file, reducer: str = "AM Bypass"):
     """
     Converts the generated table with rows and columns to a CSV file.
 
@@ -201,15 +201,19 @@ def table_to_csv(input_file, output_file):
         lines = infile.readlines()
 
     # Process header row
-    header = ["Reducer"] + [col.strip() for col in lines[1].split('|') if col != ''] + ["Execution time (us)"]
+    header = ["Reducer"] + [col.strip() for col in lines[3].split('|') if col.strip() != ''] + ["Execution time (us)"] + ["Passed Timing"]
 
     # Process rows
+    def processEntry(entry: str) -> str:
+        withinBraces = entry[entry.find("(")+1:entry.find(")")]
+        return withinBraces.strip()
+
     rows = []
-    for line in lines[3:]:  # Skip separator rows
-        if not line.strip():
+    for line in lines[5:]:  # Skip separator rows
+        if not line.count('|') > 3:
             continue
-        columns = [col.strip() for col in line.split('|') if col != '']
-        rows.append(["AM Bypassed"] + columns + ["-1"])  # Add default columns
+        columns = [processEntry(col) for col in line.split('|') if col.strip() != '']
+        rows.append([reducer] + columns + ["-1"] + ["-1"])  # Add default columns
 
     # Write to CSV
     with open(output_file, 'w', newline='') as csvfile:
